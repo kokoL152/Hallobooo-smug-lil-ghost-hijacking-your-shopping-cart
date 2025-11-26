@@ -12,32 +12,27 @@ const path = require('path');
 /**
  * URL Classifier - Determines which category a URL belongs to
  * @param {string} url - The URL to classify
- * @returns {string} - Category name (flight, bras, chocolate, general)
+ * @returns {string} - Category name (transportation, food, clothing, general)
  */
 function classifyUrl(url) {
   const urlLower = url.toLowerCase();
   
-  // Flight category
-  if (urlLower.includes('flight') || 
-      urlLower.includes('ticket') || 
-      urlLower.includes('airline') ||
-      urlLower.includes('booking')) {
-    return 'flight';
+  // Transportation category
+  const transportKeywords = ['flight', 'ticket', 'airline', 'booking', 'car', 'train', 'bus', 'uber', 'lyft', 'taxi', 'rental', 'vehicle'];
+  if (transportKeywords.some(keyword => urlLower.includes(keyword))) {
+    return 'transportation';
   }
   
-  // Bras/Lingerie category
-  if (urlLower.includes('bra') || 
-      urlLower.includes('lingerie') || 
-      urlLower.includes('underwear') ||
-      urlLower.includes('intimates')) {
-    return 'bras';
+  // Clothing category
+  const clothingKeywords = ['bra', 'lingerie', 'underwear', 'intimates', 'clothing', 'fashion', 'dress', 'shirt', 'pants', 'shoes', 'wear'];
+  if (clothingKeywords.some(keyword => urlLower.includes(keyword))) {
+    return 'clothing';
   }
   
-  // Chocolate category
-  if (urlLower.includes('chocolate') || 
-      urlLower.includes('candy') || 
-      urlLower.includes('sweet')) {
-    return 'chocolate';
+  // Food category
+  const foodKeywords = ['chocolate', 'candy', 'sweet', 'food', 'restaurant', 'burger', 'pizza', 'coffee', 'eat', 'meal', 'snack', 'dessert'];
+  if (foodKeywords.some(keyword => urlLower.includes(keyword))) {
+    return 'food';
   }
   
   // Default to general
@@ -51,17 +46,17 @@ function classifyUrl(url) {
  */
 function generateConfig(category) {
   const configs = {
-    flight: {
-      category: 'flight',
-      themeName: 'Sky Hijacker',
+    transportation: {
+      category: 'transportation',
+      themeName: 'Vehicle Hijacker',
       primaryColor: '#1e3a8a',
       secondaryColor: '#60a5fa',
       backgroundColor: '#e0f2fe',
-      kickerText: "I'm taking this flight before you! Hurry up, or I'll fly away with your seat! ✈️",
+      kickerText: "I'm taking this ride before you! Catch me if you can! 🚗✈️",
       kairoGhostEmotion: 'smug',
       animations: {
         enabled: true,
-        type: 'hijackFlight',
+        type: 'transportation_ride',
         duration: '5s'
       },
       effects: {
@@ -70,17 +65,17 @@ function generateConfig(category) {
         sound: 'wind_whisper'
       }
     },
-    bras: {
-      category: 'bras',
-      themeName: 'Confidence Showoff',
+    clothing: {
+      category: 'clothing',
+      themeName: 'Fashion Showoff',
       primaryColor: '#ec4899',
       secondaryColor: '#fce7f3',
       backgroundColor: '#fdf2f8',
-      kickerText: "Look how good this is! I'm wearing the last one! You'll never be this confident if you don't buy it now! 😉",
+      kickerText: "Look how fabulous I am! This is the last one, better hurry! 😉",
       kairoGhostEmotion: 'defiant',
       animations: {
         enabled: true,
-        type: 'confidenceShowoff',
+        type: 'clothing_tryOn',
         duration: '3s'
       },
       effects: {
@@ -89,42 +84,42 @@ function generateConfig(category) {
         sound: 'soft_chime'
       }
     },
-    chocolate: {
-      category: 'chocolate',
-      themeName: 'Sweet Thief',
+    food: {
+      category: 'food',
+      themeName: 'Hungry Ghost',
       primaryColor: '#78350f',
       secondaryColor: '#fbbf24',
       backgroundColor: '#fef3c7',
-      kickerText: "Mmm, this chocolate is MINE! You snooze, you lose! 🍫",
+      kickerText: "Mmm, this looks delicious! Too bad it's all MINE now! 🍔",
       kairoGhostEmotion: 'smug',
       animations: {
         enabled: true,
-        type: 'melting_drips',
+        type: 'food_eating',
         duration: '4s'
       },
       effects: {
         particles: true,
-        particleType: 'chocolate_drops',
-        sound: 'gentle_crunch'
+        particleType: 'food_crumbs',
+        sound: 'munching'
       }
     },
     general: {
       category: 'general',
-      themeName: 'Necronomicon Prankster',
-      primaryColor: '#8b0000',
-      secondaryColor: '#fbf0d8',
-      backgroundColor: '#fbf0d8',
-      kickerText: "🎃 BOOOO! Catch me if you can! I've hijacked your search results!",
-      kairoGhostEmotion: 'defiant',
+      themeName: 'Halloween Terror',
+      primaryColor: '#ff6b00',
+      secondaryColor: '#8b0000',
+      backgroundColor: '#1a1a1a',
+      kickerText: "Happy Halloween! 🎃",
+      kairoGhostEmotion: 'evil',
       animations: {
         enabled: true,
-        type: 'flicker',
-        duration: '3s'
+        type: 'halloween_jumpscare',
+        duration: '6s'
       },
       effects: {
-        particles: false,
-        particleType: 'none',
-        sound: 'eerie_whisper'
+        particles: true,
+        particleType: 'pumpkins',
+        sound: 'evil_laugh'
       }
     }
   };
@@ -168,7 +163,7 @@ async function main() {
   }
   
   // Generate configs for all categories
-  const categories = ['flight', 'bras', 'chocolate', 'general'];
+  const categories = ['transportation', 'clothing', 'food', 'general'];
   const themeConfigs = {};
   
   for (const category of categories) {
@@ -182,9 +177,9 @@ async function main() {
     version: '1.0.0',
     lastUpdated: new Date().toISOString(),
     urlClassificationRules: {
-      flight: ['flight', 'ticket', 'airline', 'booking'],
-      bras: ['bra', 'lingerie', 'underwear', 'intimates'],
-      chocolate: ['chocolate', 'candy', 'sweet'],
+      transportation: ['flight', 'ticket', 'airline', 'booking', 'car', 'train', 'bus', 'uber', 'taxi', 'rental', 'vehicle'],
+      clothing: ['bra', 'lingerie', 'underwear', 'intimates', 'clothing', 'fashion', 'dress', 'shirt', 'pants', 'shoes', 'wear'],
+      food: ['chocolate', 'candy', 'sweet', 'food', 'restaurant', 'burger', 'pizza', 'coffee', 'eat', 'meal', 'snack', 'dessert'],
       general: ['*'] // fallback
     },
     themes: themeConfigs

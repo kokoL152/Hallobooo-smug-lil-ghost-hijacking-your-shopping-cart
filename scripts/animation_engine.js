@@ -715,17 +715,21 @@ function executeAnimation(config) {
   switch (animationType) {
     case 'floating_planes':
     case 'hijackFlight':
+    case 'transportation_ride':
       executeFlyToDestinationAnimation(config);
       break;
     case 'gentle_glow':
     case 'confidenceShowoff':
+    case 'clothing_tryOn':
       executeConfidenceGhostAnimation(config);
       break;
     case 'melting_drips':
+    case 'food_eating':
       executeChocolateDripsAnimation(config);
       break;
     case 'flicker':
-      executeFlickerAnimation(config);
+    case 'halloween_jumpscare':
+      executeHalloweenJumpscareAnimation(config);
       break;
     default:
       console.log('⚠️ Unknown animation type:', animationType);
@@ -802,54 +806,11 @@ function executeFlyToDestinationAnimation(config) {
     ctx.closePath();
     ctx.fill();
     
-    // Draw Kiro ghost sitting on plane (larger) with black outline
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2.5;
-    
-    // Ghost body
-    ctx.beginPath();
-    ctx.arc(12, -12, 18, Math.PI, 0, false);
-    ctx.lineTo(30, 6);
-    ctx.lineTo(26, 0);
-    ctx.lineTo(22, 6);
-    ctx.lineTo(18, 0);
-    ctx.lineTo(14, 6);
-    ctx.lineTo(10, 0);
-    ctx.lineTo(6, 6);
-    ctx.lineTo(-6, 6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    // Ghost eyes - smug expression
-    ctx.fillStyle = '#2a2a2a';
-    ctx.beginPath();
-    ctx.ellipse(6, -14, 3, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(18, -14, 3, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Eyebrows - smug angle
-    ctx.strokeStyle = '#2a2a2a';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(2, -18);
-    ctx.lineTo(8, -16);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(16, -16);
-    ctx.lineTo(22, -18);
-    ctx.stroke();
-    
-    // Ghost mouth (smirk)
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(6, -10);
-    ctx.quadraticCurveTo(12, -8, 18, -10);
-    ctx.stroke();
+    // Draw cute ghost sitting on plane using unified design
+    ctx.save();
+    ctx.translate(12, -6);
+    drawCuteGhost(ctx, 0, 0, 0.8, 'smug');
+    ctx.restore();
     
     ctx.restore();
   }
@@ -859,7 +820,7 @@ function executeFlyToDestinationAnimation(config) {
     ctx.save();
     
     const bannerX = canvas.width / 2;
-    const bannerY = canvas.height / 2 - 120;
+    const bannerY = 100; // Move to top to avoid ghost
     const bannerWidth = Math.min(700, canvas.width * 0.8);
     const bannerHeight = 80;
     const bannerRadius = 15;
@@ -1068,65 +1029,48 @@ function executeConfidenceGhostAnimation(config) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rotation);
-    ctx.scale(scale, scale);
     ctx.globalAlpha = opacity;
     
-    // Ghost body with black outline
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, -20, 25, Math.PI, 0, false);
-    ctx.lineTo(25, 10);
-    ctx.lineTo(20, 5);
-    ctx.lineTo(15, 10);
-    ctx.lineTo(10, 5);
-    ctx.lineTo(5, 10);
-    ctx.lineTo(0, 5);
-    ctx.lineTo(-5, 10);
-    ctx.lineTo(-10, 5);
-    ctx.lineTo(-15, 10);
-    ctx.lineTo(-20, 5);
-    ctx.lineTo(-25, 10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    // Use unified cute ghost design
+    drawCuteGhost(ctx, 0, 0, scale, emotion);
     
-    // Draw lingerie if wearing - positioned naturally on chest area
+    // Draw lingerie on top if wearing - positioned on chest area
     if (wearingLingerie) {
+      ctx.save();
+      ctx.scale(scale, scale);
       ctx.strokeStyle = config.primaryColor;
       ctx.fillStyle = config.primaryColor;
       ctx.globalAlpha = opacity * 0.8;
       ctx.lineWidth = 2;
       
-      // Bra straps (from shoulders to cups)
+      // Bra straps (from shoulders to cups) - adjusted position
       ctx.beginPath();
-      ctx.moveTo(-20, -18);
-      ctx.lineTo(-12, -8);
+      ctx.moveTo(-20, -15);
+      ctx.lineTo(-12, -2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(20, -18);
-      ctx.lineTo(12, -8);
+      ctx.moveTo(20, -15);
+      ctx.lineTo(12, -2);
       ctx.stroke();
       
-      // Bra band (horizontal line under cups)
+      // Bra band (horizontal line under cups) - lower position
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(-18, 0);
-      ctx.lineTo(18, 0);
+      ctx.moveTo(-18, 5);
+      ctx.lineTo(18, 5);
       ctx.stroke();
       
-      // Bra cups (filled semi-circles)
+      // Bra cups (filled semi-circles) - positioned on chest, not face
       ctx.globalAlpha = opacity * 0.6;
       ctx.fillStyle = config.primaryColor;
       ctx.beginPath();
-      ctx.arc(-10, -8, 9, 0.2, Math.PI - 0.2);
-      ctx.lineTo(-10, 0);
+      ctx.arc(-10, -2, 9, 0.2, Math.PI - 0.2);
+      ctx.lineTo(-10, 5);
       ctx.closePath();
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(10, -8, 9, 0.2, Math.PI - 0.2);
-      ctx.lineTo(10, 0);
+      ctx.arc(10, -2, 9, 0.2, Math.PI - 0.2);
+      ctx.lineTo(10, 5);
       ctx.closePath();
       ctx.fill();
       
@@ -1135,33 +1079,33 @@ function executeConfidenceGhostAnimation(config) {
       ctx.strokeStyle = config.primaryColor;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(-10, -8, 9, 0.2, Math.PI - 0.2);
+      ctx.arc(-10, -2, 9, 0.2, Math.PI - 0.2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(10, -8, 9, 0.2, Math.PI - 0.2);
+      ctx.arc(10, -2, 9, 0.2, Math.PI - 0.2);
       ctx.stroke();
       
-      // Center bow (between cups)
+      // Center bow (between cups) - adjusted position
       ctx.fillStyle = config.primaryColor;
       ctx.globalAlpha = opacity;
       ctx.beginPath();
-      ctx.moveTo(-5, -4);
-      ctx.lineTo(-8, -8);
-      ctx.lineTo(-5, -12);
-      ctx.lineTo(0, -8);
+      ctx.moveTo(-5, 2);
+      ctx.lineTo(-8, -2);
+      ctx.lineTo(-5, -6);
+      ctx.lineTo(0, -2);
       ctx.closePath();
       ctx.fill();
       ctx.beginPath();
-      ctx.moveTo(5, -4);
-      ctx.lineTo(8, -8);
-      ctx.lineTo(5, -12);
-      ctx.lineTo(0, -8);
+      ctx.moveTo(5, 2);
+      ctx.lineTo(8, -2);
+      ctx.lineTo(5, -6);
+      ctx.lineTo(0, -2);
       ctx.closePath();
       ctx.fill();
       
       // Center circle for bow
       ctx.beginPath();
-      ctx.arc(0, -8, 2, 0, Math.PI * 2);
+      ctx.arc(0, -2, 2, 0, Math.PI * 2);
       ctx.fill();
       
       // Decorative lace pattern
@@ -1170,114 +1114,15 @@ function executeConfidenceGhostAnimation(config) {
       ctx.lineWidth = 1;
       for (let i = -8; i <= 8; i += 4) {
         ctx.beginPath();
-        ctx.arc(-10 + i, -8, 2, 0, Math.PI);
+        ctx.arc(-10 + i, -2, 2, 0, Math.PI);
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(10 + i, -8, 2, 0, Math.PI);
+        ctx.arc(10 + i, -2, 2, 0, Math.PI);
         ctx.stroke();
       }
       
-      ctx.globalAlpha = opacity;
+      ctx.restore();
     }
-    
-    // Eyes based on emotion
-    ctx.fillStyle = '#2a2a2a';
-    if (emotion === 'shy') {
-      // Small shy eyes (closed or looking down)
-      ctx.beginPath();
-      ctx.ellipse(-8, -22, 2, 1, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(8, -22, 2, 1, 0, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Blush
-      ctx.fillStyle = '#ffb3d9';
-      ctx.globalAlpha = opacity * 0.7;
-      ctx.beginPath();
-      ctx.ellipse(-15, -12, 5, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(15, -12, 5, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = opacity;
-    } else if (emotion === 'defiant' || emotion === 'smug') {
-      // Smug/defiant eyes - narrowed
-      ctx.beginPath();
-      ctx.ellipse(-8, -22, 3, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(8, -22, 3, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Eyebrows - angled for attitude
-      ctx.strokeStyle = '#2a2a2a';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(-12, -26);
-      ctx.lineTo(-4, -24);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(4, -24);
-      ctx.lineTo(12, -26);
-      ctx.stroke();
-      
-      // Eye shine
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(-9, -24, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(7, -24, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Confident wide eyes
-      ctx.beginPath();
-      ctx.ellipse(-8, -22, 4, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(8, -22, 4, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Eye shine
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(-9, -24, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(7, -24, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Confident blush (lighter)
-      ctx.fillStyle = '#ffb3d9';
-      ctx.globalAlpha = opacity * 0.4;
-      ctx.beginPath();
-      ctx.ellipse(-15, -12, 4, 3, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(15, -12, 4, 3, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = opacity;
-    }
-    
-    // Mouth
-    ctx.strokeStyle = '#2a2a2a';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    if (emotion === 'shy') {
-      ctx.arc(0, -12, 5, 0.4, Math.PI - 0.4);
-    } else if (emotion === 'smug') {
-      // Smirk
-      ctx.moveTo(-8, -12);
-      ctx.quadraticCurveTo(0, -10, 8, -12);
-    } else if (emotion === 'defiant') {
-      // Confident straight line with slight curve
-      ctx.moveTo(-8, -12);
-      ctx.lineTo(8, -12);
-    } else {
-      ctx.arc(0, -10, 8, 0.2, Math.PI - 0.2);
-    }
-    ctx.stroke();
     
     ctx.restore();
   }
@@ -1491,20 +1336,536 @@ function executeConfidenceGhostAnimation(config) {
  * ChocolateDrips Animation - Melting effect
  * @param {Object} config - Theme configuration
  */
+/**
+ * ChocolateDrips Animation - Ghost eating chocolate
+ * @param {Object} config - Theme configuration
+ */
 function executeChocolateDripsAnimation(config) {
   console.log('🍫 Starting ChocolateDrips animation...');
-  // Placeholder for chocolate drips animation
-  console.log('✓ ChocolateDrips animation (placeholder)');
+  
+  // Create canvas for animation
+  const canvas = createAnimationCanvas();
+  const ctx = canvas.getContext('2d');
+  
+  // Animation state
+  const animation = {
+    phase: 'entering', // phases: entering, eating, satisfied
+    ghostX: -150,
+    ghostY: canvas.height / 2,
+    targetX: canvas.width / 2 - 100,
+    chocolateX: canvas.width / 2 + 100,
+    chocolateY: canvas.height / 2,
+    chocolateSize: 1,
+    biteTimer: 0,
+    satisfiedTimer: 0,
+    time: 0
+  };
+  
+  // Draw chocolate bar
+  function drawChocolate(x, y, size, bites = 0) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size, size);
+    
+    // Chocolate bar
+    ctx.fillStyle = config.primaryColor;
+    ctx.strokeStyle = '#5a2d0c';
+    ctx.lineWidth = 2;
+    
+    const segments = 4 - bites;
+    const segmentWidth = 30;
+    const segmentHeight = 40;
+    
+    for (let i = 0; i < segments; i++) {
+      ctx.fillRect(i * segmentWidth, 0, segmentWidth - 2, segmentHeight);
+      ctx.strokeRect(i * segmentWidth, 0, segmentWidth - 2, segmentHeight);
+      
+      // Segment lines
+      ctx.strokeStyle = '#8b4513';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(i * segmentWidth + segmentWidth/2, 0);
+      ctx.lineTo(i * segmentWidth + segmentWidth/2, segmentHeight);
+      ctx.stroke();
+    }
+    
+    // Bite mark if any
+    if (bites > 0) {
+      ctx.fillStyle = '#d2691e';
+      ctx.beginPath();
+      ctx.arc(segments * segmentWidth, segmentHeight/2, 15, -Math.PI/2, Math.PI/2);
+      ctx.fill();
+    }
+    
+    ctx.restore();
+  }
+  
+  // Draw ghost eating
+  function drawEatingGhost(x, y, mouthOpen) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Use unified cute ghost design
+    drawCuteGhost(ctx, 0, 0, 2, mouthOpen ? 'happy' : 'smug');
+    
+    // Add chocolate smudge on mouth if eating - darker and more visible
+    if (animation.biteTimer > 0) {
+      ctx.scale(2, 2);
+      
+      // Darker chocolate color
+      ctx.fillStyle = '#5a2d0c'; // Dark chocolate brown
+      ctx.globalAlpha = 0.9;
+      
+      // Left smudge
+      ctx.beginPath();
+      ctx.arc(-6, -8, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Right smudge
+      ctx.beginPath();
+      ctx.arc(6, -8, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Add highlight for 3D effect
+      ctx.fillStyle = '#8b4513';
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(-6.5, -9, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(5.5, -9, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.globalAlpha = 1;
+    }
+    
+    ctx.restore();
+  }
+  
+  // Draw banner
+  function drawBanner(text, alpha) {
+    ctx.save();
+    const bannerX = canvas.width / 2;
+    const bannerY = 100;
+    const bannerWidth = Math.min(600, canvas.width * 0.7);
+    const bannerHeight = 70;
+    
+    ctx.globalAlpha = alpha * 0.95;
+    const gradient = ctx.createLinearGradient(bannerX - bannerWidth/2, bannerY, bannerX + bannerWidth/2, bannerY);
+    gradient.addColorStop(0, config.primaryColor);
+    gradient.addColorStop(0.5, config.secondaryColor);
+    gradient.addColorStop(1, config.primaryColor);
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.roundRect(bannerX - bannerWidth/2, bannerY - bannerHeight/2, bannerWidth, bannerHeight, 15);
+    ctx.fill();
+    
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 8;
+    ctx.fillText(text, bannerX, bannerY);
+    
+    ctx.restore();
+  }
+  
+  // Animation loop
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    animation.time++;
+    
+    switch (animation.phase) {
+      case 'entering':
+        animation.ghostX += 4;
+        
+        if (animation.ghostX >= animation.targetX) {
+          animation.phase = 'eating';
+          animation.biteTimer = 0;
+        }
+        
+        drawChocolate(animation.chocolateX, animation.chocolateY, 2, 0);
+        drawEatingGhost(animation.ghostX, animation.ghostY, false);
+        break;
+        
+      case 'eating':
+        animation.biteTimer++;
+        const bites = Math.floor(animation.biteTimer / 60);
+        const mouthOpen = (animation.biteTimer % 60) < 30;
+        
+        // Move ghost closer to chocolate
+        if (animation.biteTimer % 60 === 0 && bites < 4) {
+          animation.ghostX += 20;
+        }
+        
+        drawChocolate(animation.chocolateX, animation.chocolateY, 2, Math.min(bites, 3));
+        drawEatingGhost(animation.ghostX, animation.ghostY, mouthOpen);
+        
+        if (bites >= 4) {
+          animation.phase = 'satisfied';
+          animation.satisfiedTimer = 0;
+        }
+        break;
+        
+      case 'satisfied':
+        animation.satisfiedTimer++;
+        
+        const bannerAlpha = Math.min(1, animation.satisfiedTimer / 30);
+        drawBanner(config.kickerText, bannerAlpha);
+        
+        drawEatingGhost(animation.ghostX, animation.ghostY, false);
+        
+        if (animation.satisfiedTimer > 180) {
+          // Reset
+          animation.phase = 'entering';
+          animation.ghostX = -150;
+          animation.biteTimer = 0;
+          animation.satisfiedTimer = 0;
+        }
+        break;
+    }
+    
+    requestAnimationFrame(animate);
+  }
+  
+  animate();
+  console.log('✓ ChocolateDrips animation started');
 }
 
 /**
- * Flicker Animation - Mysterious flicker effect
+ * Universal cute ghost drawing function for Canvas
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} scale - Scale factor
+ * @param {string} emotion - Ghost emotion
+ */
+function drawCuteGhost(ctx, x, y, scale, emotion = 'smug') {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  
+  // Ghost body with cute rounded shape
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3 / scale;
+  ctx.beginPath();
+  ctx.arc(0, -20, 25, Math.PI, 0, false);
+  ctx.lineTo(25, 10);
+  ctx.lineTo(20, 5);
+  ctx.lineTo(15, 10);
+  ctx.lineTo(10, 5);
+  ctx.lineTo(5, 10);
+  ctx.lineTo(0, 5);
+  ctx.lineTo(-5, 10);
+  ctx.lineTo(-10, 5);
+  ctx.lineTo(-15, 10);
+  ctx.lineTo(-20, 5);
+  ctx.lineTo(-25, 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  
+  // Highlight for 3D effect
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.beginPath();
+  ctx.ellipse(-8, -28, 12, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eyes based on emotion
+  ctx.fillStyle = '#2a2a2a';
+  if (emotion === 'smug' || emotion === 'evil') {
+    // Smug narrowed eyes
+    ctx.beginPath();
+    ctx.ellipse(-8, -22, 3, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(8, -22, 3, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eyebrows - smug angle
+    ctx.strokeStyle = '#2a2a2a';
+    ctx.lineWidth = 2.5 / scale;
+    ctx.beginPath();
+    ctx.moveTo(-12, -26);
+    ctx.lineTo(-4, -24);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(4, -24);
+    ctx.lineTo(12, -26);
+    ctx.stroke();
+    
+    // Eye shine
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-9, -24, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(7, -24, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Normal happy eyes
+    ctx.beginPath();
+    ctx.ellipse(-8, -22, 4, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(8, -22, 4, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eye shine
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-9, -24, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(7, -24, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Mouth
+  ctx.strokeStyle = '#2a2a2a';
+  ctx.lineWidth = 2.5 / scale;
+  ctx.beginPath();
+  if (emotion === 'smug' || emotion === 'evil') {
+    // Smirk
+    ctx.moveTo(-8, -12);
+    ctx.quadraticCurveTo(0, -10, 8, -12);
+  } else {
+    // Happy smile
+    ctx.arc(0, -10, 8, 0.2, Math.PI - 0.2);
+  }
+  ctx.stroke();
+  
+  // Rosy cheeks for cute effect
+  ctx.fillStyle = 'rgba(255, 182, 193, 0.5)';
+  ctx.beginPath();
+  ctx.ellipse(-15, -12, 4, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(15, -12, 4, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.restore();
+}
+
+/**
+ * Halloween Jumpscare Animation - Cute ghost grows to fill screen
  * @param {Object} config - Theme configuration
  */
-function executeFlickerAnimation(config) {
-  console.log('👻 Starting Flicker animation...');
-  // Placeholder for flicker animation
-  console.log('✓ Flicker animation (placeholder)');
+function executeHalloweenJumpscareAnimation(config) {
+  console.log('🎃 Starting Halloween Jumpscare animation...');
+  
+  // Create canvas for animation
+  const canvas = createAnimationCanvas();
+  const ctx = canvas.getContext('2d');
+  
+  // Animation state
+  const animation = {
+    phase: 'approaching', // phases: approaching, jumpscare, pumpkin_rain
+    ghostX: canvas.width + 100,
+    ghostY: 100,
+    targetX: canvas.width / 2,
+    targetY: canvas.height / 2,
+    scale: 1,
+    rotation: 0,
+    flashIntensity: 0,
+    time: 0,
+    pumpkins: []
+  };
+  
+  // Initialize pumpkins for rain
+  for (let i = 0; i < 30; i++) {
+    animation.pumpkins.push({
+      x: Math.random() * canvas.width,
+      y: -Math.random() * canvas.height,
+      speed: 2 + Math.random() * 3,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.1,
+      size: 20 + Math.random() * 30
+    });
+  }
+  
+
+  
+  // Draw Happy Halloween text in mouth
+  function drawHalloweenText(scale) {
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2 - 8 * scale);
+    ctx.scale(scale, scale);
+    
+    ctx.fillStyle = '#ff6b00';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.font = 'bold 40px "Creepster", "Nosifer", cursive';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 20;
+    
+    ctx.strokeText('Happy Halloween!', 0, 0);
+    ctx.fillText('Happy Halloween!', 0, 0);
+    
+    ctx.restore();
+  }
+  
+  // Draw pumpkin
+  function drawPumpkin(x, y, size, rotation) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.scale(size / 30, size / 30);
+    
+    // Pumpkin body
+    ctx.fillStyle = '#ff6b00';
+    ctx.strokeStyle = '#8b4513';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 30, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Pumpkin segments
+    ctx.beginPath();
+    ctx.moveTo(-20, -15);
+    ctx.quadraticCurveTo(-20, 0, -20, 15);
+    ctx.moveTo(-10, -20);
+    ctx.quadraticCurveTo(-10, 0, -10, 20);
+    ctx.moveTo(10, -20);
+    ctx.quadraticCurveTo(10, 0, 10, 20);
+    ctx.moveTo(20, -15);
+    ctx.quadraticCurveTo(20, 0, 20, 15);
+    ctx.stroke();
+    
+    // Jack-o-lantern face
+    ctx.fillStyle = '#000000';
+    // Eyes
+    ctx.beginPath();
+    ctx.moveTo(-15, -8);
+    ctx.lineTo(-10, -12);
+    ctx.lineTo(-5, -8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(5, -8);
+    ctx.lineTo(10, -12);
+    ctx.lineTo(15, -8);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Nose
+    ctx.beginPath();
+    ctx.moveTo(-2, 0);
+    ctx.lineTo(0, -5);
+    ctx.lineTo(2, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Mouth
+    ctx.beginPath();
+    ctx.arc(0, 5, 12, 0, Math.PI);
+    ctx.fill();
+    
+    // Stem
+    ctx.fillStyle = '#228b22';
+    ctx.fillRect(-3, -28, 6, 8);
+    
+    ctx.restore();
+  }
+  
+  // Animation loop
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    animation.time++;
+    
+    switch (animation.phase) {
+      case 'approaching':
+        // Ghost flies in from right
+        animation.ghostX -= 5;
+        animation.ghostY = 100 + Math.sin(animation.time * 0.05) * 20;
+        
+        if (animation.ghostX <= animation.targetX) {
+          animation.phase = 'jumpscare';
+          animation.time = 0;
+        }
+        
+        drawCuteGhost(ctx, animation.ghostX, animation.ghostY, animation.scale, 'smug');
+        break;
+        
+      case 'jumpscare':
+        // Screen flashes and ghost grows
+        animation.flashIntensity = Math.sin(animation.time * 0.3) * 0.5 + 0.5;
+        animation.scale = 1 + (animation.time / 60) * 15;
+        animation.ghostX = animation.targetX;
+        animation.ghostY = animation.targetY;
+        
+        // Flash effect with colorful sparkles
+        ctx.fillStyle = `rgba(255, 182, 193, ${animation.flashIntensity * 0.2})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        drawCuteGhost(ctx, animation.ghostX, animation.ghostY, animation.scale, 'smug');
+        
+        // Show Happy Halloween text when ghost is big enough
+        if (animation.scale > 8) {
+          drawHalloweenText(animation.scale);
+        }
+        
+        if (animation.time > 120) {
+          animation.phase = 'pumpkin_rain';
+          animation.time = 0;
+        }
+        break;
+        
+      case 'pumpkin_rain':
+        // Background darkens
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Pumpkins fall
+        animation.pumpkins.forEach(pumpkin => {
+          pumpkin.y += pumpkin.speed;
+          pumpkin.rotation += pumpkin.rotationSpeed;
+          
+          if (pumpkin.y > canvas.height + 50) {
+            pumpkin.y = -50;
+            pumpkin.x = Math.random() * canvas.width;
+          }
+          
+          drawPumpkin(pumpkin.x, pumpkin.y, pumpkin.size, pumpkin.rotation);
+        });
+        
+        // Show text
+        ctx.fillStyle = '#ff6b00';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 5;
+        ctx.font = 'bold 80px "Creepster", cursive';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 30;
+        ctx.strokeText('Happy Halloween!', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('Happy Halloween!', canvas.width / 2, canvas.height / 2);
+        
+        // Reset after a while
+        if (animation.time > 300) {
+          animation.phase = 'approaching';
+          animation.ghostX = canvas.width + 100;
+          animation.scale = 1;
+          animation.time = 0;
+        }
+        break;
+    }
+    
+    requestAnimationFrame(animate);
+  }
+  
+  animate();
+  console.log('✓ Halloween Jumpscare animation started');
 }
 
 /**

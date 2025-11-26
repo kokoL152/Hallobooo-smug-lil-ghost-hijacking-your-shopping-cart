@@ -1,0 +1,128 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-11-25T10:52:19.436Z",
+  "urlClassificationRules": {
+    "flight": [
+      "flight",
+      "ticket",
+      "airline",
+      "booking"
+    ],
+    "bras": [
+      "bra",
+      "lingerie",
+      "underwear",
+      "intimates"
+    ],
+    "chocolate": [
+      "chocolate",
+      "candy",
+      "sweet"
+    ],
+    "general": [
+      "*"
+    ]
+  },
+  "themes": {
+    "flight": {
+      "category": "flight",
+      "themeName": "Sky Hijacker",
+      "primaryColor": "#1e3a8a",
+      "secondaryColor": "#60a5fa",
+      "backgroundColor": "#e0f2fe",
+      "kickerText": "I'm taking this flight before you! Hurry up, or I'll fly away with your seat! ✈️",
+      "kairoGhostEmotion": "smug",
+      "animations": {
+        "enabled": true,
+        "type": "hijackFlight",
+        "duration": "5s"
+      },
+      "effects": {
+        "particles": true,
+        "particleType": "clouds",
+        "sound": "wind_whisper"
+      },
+      "metadata": {
+        "generatedAt": "2025-11-25T10:52:19.432Z",
+        "version": "1.0.0",
+        "generator": "content_classifier_hook",
+        "llmEnhanced": false
+      }
+    },
+    "bras": {
+      "category": "bras",
+      "themeName": "Confidence Showoff",
+      "primaryColor": "#ec4899",
+      "secondaryColor": "#fce7f3",
+      "backgroundColor": "#fdf2f8",
+      "kickerText": "Look how good this is! I'm wearing the last one! You'll never be this confident if you don't buy it now! 😉",
+      "kairoGhostEmotion": "defiant",
+      "animations": {
+        "enabled": true,
+        "type": "confidenceShowoff",
+        "duration": "3s"
+      },
+      "effects": {
+        "particles": true,
+        "particleType": "sparkles",
+        "sound": "soft_chime"
+      },
+      "metadata": {
+        "generatedAt": "2025-11-25T10:52:19.436Z",
+        "version": "1.0.0",
+        "generator": "content_classifier_hook",
+        "llmEnhanced": false
+      }
+    },
+    "chocolate": {
+      "category": "chocolate",
+      "themeName": "Sweet Thief",
+      "primaryColor": "#78350f",
+      "secondaryColor": "#fbbf24",
+      "backgroundColor": "#fef3c7",
+      "kickerText": "Mmm, this chocolate is MINE! You snooze, you lose! 🍫",
+      "kairoGhostEmotion": "smug",
+      "animations": {
+        "enabled": true,
+        "type": "melting_drips",
+        "duration": "4s"
+      },
+      "effects": {
+        "particles": true,
+        "particleType": "chocolate_drops",
+        "sound": "gentle_crunch"
+      },
+      "metadata": {
+        "generatedAt": "2025-11-25T10:52:19.436Z",
+        "version": "1.0.0",
+        "generator": "content_classifier_hook",
+        "llmEnhanced": false
+      }
+    },
+    "general": {
+      "category": "general",
+      "themeName": "Necronomicon Prankster",
+      "primaryColor": "#8b0000",
+      "secondaryColor": "#fbf0d8",
+      "backgroundColor": "#fbf0d8",
+      "kickerText": "🎃 BOOOO! Catch me if you can! I've hijacked your search results!",
+      "kairoGhostEmotion": "defiant",
+      "animations": {
+        "enabled": true,
+        "type": "flicker",
+        "duration": "3s"
+      },
+      "effects": {
+        "particles": false,
+        "particleType": "none",
+        "sound": "eerie_whisper"
+      },
+      "metadata": {
+        "generatedAt": "2025-11-25T10:52:19.436Z",
+        "version": "1.0.0",
+        "generator": "content_classifier_hook",
+        "llmEnhanced": false
+      }
+    }
+  }
+}

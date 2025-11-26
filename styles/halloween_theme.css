@@ -1,0 +1,25 @@
+/* The Necronomicon Mirror - Halloween Theme Styles */
+
+/* Parchment-like background */
+body {
+  background-color: #fbf0d8 !important;
+  animation: flicker 3s infinite alternate !important;
+}
+
+/* Dark red text color for all elements */
+* {
+  color: #8b0000 !important;
+}
+
+/* Flickering red shadow animation */
+@keyframes flicker {
+  0% {
+    box-shadow: inset 0 0 100px rgba(139, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: inset 0 0 100px rgba(139, 0, 0, 0.3);
+  }
+  100% {
+    box-shadow: inset 0 0 100px rgba(139, 0, 0, 0.1);
+  }
+}

@@ -4,6 +4,188 @@
  */
 
 /**
+ * Global animation state manager
+ */
+const animationState = {
+  currentPhase: 'animation', // phases: animation, interaction, reward, fadeout
+  loopCount: 0,
+  maxLoops: 2,
+  interactionComplete: false
+};
+
+/**
+ * Create interaction UI (button and static ghost)
+ */
+function createInteractionUI(config) {
+  const uiId = 'necro-interaction-ui';
+  
+  // Remove existing UI if any
+  const existingUI = document.getElementById(uiId);
+  if (existingUI) {
+    existingUI.remove();
+  }
+  
+  // Create UI container
+  const uiContainer = document.createElement('div');
+  uiContainer.id = uiId;
+  uiContainer.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999998;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  `;
+  
+  // Create static ghost with breathing animation
+  const ghostContainer = document.createElement('div');
+  ghostContainer.id = 'necro-static-ghost';
+  ghostContainer.innerHTML = createGhostSVG(config.kairoGhostEmotion, config.primaryColor);
+  ghostContainer.style.cssText = `
+    width: 150px;
+    height: 180px;
+    animation: breathe 3s ease-in-out infinite;
+  `;
+  
+  // Create interaction button
+  const button = document.createElement('button');
+  button.id = 'necro-interaction-btn';
+  button.textContent = '🎃 Trick or Treat?';
+  button.style.cssText = `
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    background: linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor});
+    color: white;
+    border: 3px solid white;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    font-family: 'Arial', sans-serif;
+  `;
+  
+  button.onmouseover = () => {
+    button.style.transform = 'scale(1.1)';
+    button.style.boxShadow = '0 6px 30px rgba(0, 0, 0, 0.4)';
+  };
+  
+  button.onmouseout = () => {
+    button.style.transform = 'scale(1)';
+    button.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+  };
+  
+  button.onclick = () => {
+    handleInteraction(config);
+  };
+  
+  uiContainer.appendChild(ghostContainer);
+  uiContainer.appendChild(button);
+  document.body.appendChild(uiContainer);
+  
+  // Fade in
+  setTimeout(() => {
+    uiContainer.style.opacity = '1';
+  }, 100);
+  
+  console.log('✓ Interaction UI created');
+}
+
+/**
+ * Handle user interaction
+ */
+function handleInteraction(config) {
+  const button = document.getElementById('necro-interaction-btn');
+  const uiContainer = document.getElementById('necro-interaction-ui');
+  
+  if (!button || !uiContainer) return;
+  
+  // Change button text
+  button.textContent = '🎁 Enjoy your treat!';
+  button.disabled = true;
+  button.style.cursor = 'default';
+  button.style.opacity = '0.7';
+  
+  // Show reward message
+  showRewardMessage(config);
+  
+  // Mark interaction as complete
+  animationState.interactionComplete = true;
+  animationState.currentPhase = 'reward';
+  
+  // Fade out after 5 seconds
+  setTimeout(() => {
+    fadeOutAllElements();
+  }, 5000);
+}
+
+/**
+ * Show reward message
+ */
+function showRewardMessage(config) {
+  const rewardId = 'necro-reward-message';
+  
+  const rewardDiv = document.createElement('div');
+  rewardDiv.id = rewardId;
+  rewardDiv.textContent = '✨ You got a spooky discount! ✨';
+  rewardDiv.style.cssText = `
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 20px 40px;
+    background: linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor});
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 15px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    z-index: 999999;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  `;
+  
+  document.body.appendChild(rewardDiv);
+  
+  setTimeout(() => {
+    rewardDiv.style.opacity = '1';
+  }, 100);
+}
+
+/**
+ * Fade out all Necronomicon elements
+ */
+function fadeOutAllElements() {
+  animationState.currentPhase = 'fadeout';
+  
+  const elements = [
+    document.getElementById('necro-interaction-ui'),
+    document.getElementById('necro-reward-message'),
+    document.getElementById('necro-animation-canvas'),
+    document.getElementById('kiro-ghost')
+  ];
+  
+  elements.forEach(el => {
+    if (el) {
+      el.style.transition = 'opacity 1s ease';
+      el.style.opacity = '0';
+      setTimeout(() => {
+        if (el.parentNode) {
+          el.remove();
+        }
+      }, 1000);
+    }
+  });
+  
+  console.log('✓ All elements faded out');
+}
+
+/**
  * Global initialization function called by content_script.js
  * @param {Object} config - Theme configuration object
  */
@@ -11,6 +193,11 @@ function initializeAnimationEngine(config) {
   console.log('🎨 Initializing Animation Engine...');
   console.log('Theme:', config.themeName);
   console.log('Emotion:', config.kairoGhostEmotion);
+  
+  // Reset animation state
+  animationState.currentPhase = 'animation';
+  animationState.loopCount = 0;
+  animationState.interactionComplete = false;
   
   // Inject theme styles
   injectThemeStyles(config);
@@ -448,6 +635,16 @@ function injectThemeStyles(config) {
       50% { transform: scale(1.02); }
     }
     
+    /* Breathing animation for static ghost */
+    @keyframes breathe {
+      0%, 100% { 
+        transform: translateY(0px) scale(1); 
+      }
+      50% { 
+        transform: translateY(-10px) scale(1.03); 
+      }
+    }
+    
     /* Kicker notification styles */
     #necro-kicker {
       position: fixed;
@@ -755,10 +952,11 @@ function executeFlyToDestinationAnimation(config) {
     targetY: canvas.height / 2,
     speed: 3,
     pauseTimer: 0,
-    pauseDuration: 180, // Increased from 120 to 180 frames (3 seconds)
+    pauseDuration: 180,
     rotation: 0,
     bobOffset: 0,
-    time: 0
+    time: 0,
+    completedLoops: 0
   };
   
   // Draw Kiro ghost on plane
@@ -964,10 +1162,23 @@ function executeFlyToDestinationAnimation(config) {
         animation.speed += 0.1; // Accelerate
         animation.rotation = -0.1;
         
-        if (animation.x > canvas.width + 150) {
-          // Reset animation
+        if (animation.x > canvas.width + 200) {
+          animation.completedLoops++;
+          
+          // Check if we've completed max loops
+          if (animation.completedLoops >= animationState.maxLoops) {
+            // Stop animation and show interaction UI
+            canvas.style.opacity = '0';
+            setTimeout(() => {
+              canvas.style.display = 'none';
+              createInteractionUI(config);
+            }, 500);
+            return; // Stop animation loop
+          }
+          
+          // Reset for next loop
           animation.phase = 'flying_in';
-          animation.x = -150;
+          animation.x = -200;
           animation.speed = 3;
           animation.time = 0;
         }
@@ -1002,13 +1213,14 @@ function executeConfidenceGhostAnimation(config) {
     y: canvas.height - 180,
     targetX: canvas.width / 2,
     targetY: canvas.height / 2,
-    scale: 1.5, // Further increased for better visibility
+    scale: 1.5,
     rotation: 0,
     opacity: 0.7,
     flashTimer: 0,
-    flashDuration: 80, // Increased flash duration
+    flashDuration: 80,
     confidenceTimer: 0,
-    time: 0
+    time: 0,
+    completedLoops: 0
   };
   
   // Particle system for confidence aura
@@ -1313,6 +1525,20 @@ function executeConfidenceGhostAnimation(config) {
         
         // Reset after a while
         if (animation.confidenceTimer > 300) {
+          animation.completedLoops++;
+          
+          // Check if we've completed max loops
+          if (animation.completedLoops >= animationState.maxLoops) {
+            // Stop animation and show interaction UI
+            canvas.style.opacity = '0';
+            setTimeout(() => {
+              canvas.style.display = 'none';
+              createInteractionUI(config);
+            }, 500);
+            return; // Stop animation loop
+          }
+          
+          // Reset for next loop
           animation.phase = 'shy';
           animation.x = 120;
           animation.y = canvas.height - 180;
@@ -1358,7 +1584,8 @@ function executeChocolateDripsAnimation(config) {
     chocolateSize: 1,
     biteTimer: 0,
     satisfiedTimer: 0,
-    time: 0
+    time: 0,
+    completedLoops: 0
   };
   
   // Draw chocolate bar
@@ -1522,7 +1749,20 @@ function executeChocolateDripsAnimation(config) {
         drawEatingGhost(animation.ghostX, animation.ghostY, false);
         
         if (animation.satisfiedTimer > 180) {
-          // Reset
+          animation.completedLoops++;
+          
+          // Check if we've completed max loops
+          if (animation.completedLoops >= animationState.maxLoops) {
+            // Stop animation and show interaction UI
+            canvas.style.opacity = '0';
+            setTimeout(() => {
+              canvas.style.display = 'none';
+              createInteractionUI(config);
+            }, 500);
+            return; // Stop animation loop
+          }
+          
+          // Reset for next loop
           animation.phase = 'entering';
           animation.ghostX = -150;
           animation.biteTimer = 0;
@@ -1676,7 +1916,8 @@ function executeHalloweenJumpscareAnimation(config) {
     rotation: 0,
     flashIntensity: 0,
     time: 0,
-    pumpkins: []
+    pumpkins: [],
+    completedLoops: 0
   };
   
   // Initialize pumpkins for rain
@@ -1853,6 +2094,20 @@ function executeHalloweenJumpscareAnimation(config) {
         
         // Reset after a while
         if (animation.time > 300) {
+          animation.completedLoops++;
+          
+          // Check if we've completed max loops
+          if (animation.completedLoops >= animationState.maxLoops) {
+            // Stop animation and show interaction UI
+            canvas.style.opacity = '0';
+            setTimeout(() => {
+              canvas.style.display = 'none';
+              createInteractionUI(config);
+            }, 500);
+            return; // Stop animation loop
+          }
+          
+          // Reset for next loop
           animation.phase = 'approaching';
           animation.ghostX = canvas.width + 100;
           animation.scale = 1;

@@ -9,7 +9,7 @@
 const animationState = {
   currentPhase: 'animation', // phases: animation, interaction, reward, fadeout
   loopCount: 0,
-  maxLoops: 2,
+  maxLoops: 1, // Changed from 2 to 1 - play animation only once
   interactionComplete: false
 };
 
@@ -66,9 +66,26 @@ function createQuestionnaireUI(config) {
     font-weight: bold;
     color: ${config.primaryColor};
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     max-width: 800px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+  `;
+  
+  // Progress indicator
+  const progressDiv = document.createElement('div');
+  progressDiv.id = 'necro-progress';
+  progressDiv.style.cssText = `
+    font-size: 18px;
+    color: #666;
+    text-align: center;
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translateX(-50%);
   `;
   
   // Options container
@@ -104,6 +121,7 @@ function createQuestionnaireUI(config) {
   optionsContainer.appendChild(optionB);
   
   container.appendChild(questionDiv);
+  container.appendChild(progressDiv);
   container.appendChild(optionsContainer);
   document.body.appendChild(container);
   
@@ -209,6 +227,12 @@ function loadQuestion(config, index) {
   const questionDiv = document.getElementById('necro-question');
   if (questionDiv) {
     questionDiv.textContent = question.question;
+  }
+  
+  // Update progress indicator
+  const progressDiv = document.getElementById('necro-progress');
+  if (progressDiv) {
+    progressDiv.textContent = `Question ${index + 1} of ${questions.length}`;
   }
   
   // Update option A
@@ -371,6 +395,9 @@ function showRewardMessage(config) {
 function fadeOutAllElements() {
   animationState.currentPhase = 'fadeout';
   
+  // Show final goodbye message
+  showGoodbyeMessage();
+  
   const elements = [
     document.getElementById('necro-interaction-ui'),
     document.getElementById('necro-reward-message'),
@@ -390,7 +417,62 @@ function fadeOutAllElements() {
     }
   });
   
+  // Fade out circuit board edges
+  const styleElement = document.getElementById('necronomicon-theme-styles');
+  if (styleElement) {
+    setTimeout(() => {
+      styleElement.remove();
+    }, 1000);
+  }
+  
   console.log('✓ All elements faded out');
+}
+
+/**
+ * Show goodbye message
+ */
+function showGoodbyeMessage() {
+  const goodbyeId = 'necro-goodbye-message';
+  
+  const goodbyeDiv = document.createElement('div');
+  goodbyeDiv.id = goodbyeId;
+  goodbyeDiv.innerHTML = `
+    <div style="font-size: 48px; margin-bottom: 20px;">👻</div>
+    <div style="font-size: 32px; font-weight: bold;">The mischievous ghost has left!</div>
+    <div style="font-size: 24px; margin-top: 10px; opacity: 0.8;">Your PC is back to you 💻</div>
+  `;
+  goodbyeDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 40px 60px;
+    background: linear-gradient(135deg, #ff6b00, #8b0000);
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    z-index: 9999999;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  `;
+  
+  document.body.appendChild(goodbyeDiv);
+  
+  setTimeout(() => {
+    goodbyeDiv.style.opacity = '1';
+  }, 100);
+  
+  // Fade out goodbye message after 3 seconds
+  setTimeout(() => {
+    goodbyeDiv.style.opacity = '0';
+    setTimeout(() => {
+      if (goodbyeDiv.parentNode) {
+        goodbyeDiv.remove();
+      }
+    }, 500);
+  }, 3000);
 }
 
 /**

@@ -14,10 +14,19 @@ const animationState = {
 };
 
 /**
- * Create interaction UI (button and static ghost)
+ * Questionnaire state
  */
-function createInteractionUI(config) {
-  const uiId = 'necro-interaction-ui';
+const questionnaireState = {
+  currentQuestionIndex: 0,
+  userAnswers: [],
+  isAnimating: false
+};
+
+/**
+ * Create questionnaire UI
+ */
+function createQuestionnaireUI(config) {
+  const uiId = 'necro-questionnaire-ui';
   
   // Remove existing UI if any
   const existingUI = document.getElementById(uiId);
@@ -25,104 +34,303 @@ function createInteractionUI(config) {
     existingUI.remove();
   }
   
-  // Create UI container
-  const uiContainer = document.createElement('div');
-  uiContainer.id = uiId;
-  uiContainer.style.cssText = `
+  // Reset questionnaire state
+  questionnaireState.currentQuestionIndex = 0;
+  questionnaireState.userAnswers = [];
+  questionnaireState.isAnimating = false;
+  
+  // Create main container
+  const container = document.createElement('div');
+  container.id = uiId;
+  container.style.cssText = `
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 999998;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
     opacity: 0;
     transition: opacity 0.5s ease;
+    pointer-events: all;
   `;
   
-  // Create static ghost with breathing animation
+  // Question display
+  const questionDiv = document.createElement('div');
+  questionDiv.id = 'necro-question';
+  questionDiv.style.cssText = `
+    font-size: 32px;
+    font-weight: bold;
+    color: ${config.primaryColor};
+    text-align: center;
+    margin-bottom: 40px;
+    max-width: 800px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  `;
+  
+  // Options container
+  const optionsContainer = document.createElement('div');
+  optionsContainer.id = 'necro-options';
+  optionsContainer.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+    position: relative;
+  `;
+  
+  // Option A
+  const optionA = createOptionElement('A', config);
+  
+  // Ghost in the middle
   const ghostContainer = document.createElement('div');
-  ghostContainer.id = 'necro-static-ghost';
+  ghostContainer.id = 'necro-quiz-ghost';
   ghostContainer.innerHTML = createGhostSVG(config.kairoGhostEmotion, config.primaryColor);
   ghostContainer.style.cssText = `
-    width: 150px;
-    height: 180px;
+    width: 120px;
+    height: 150px;
     animation: breathe 3s ease-in-out infinite;
+    transition: all 0.5s ease;
   `;
   
-  // Create interaction button
-  const button = document.createElement('button');
-  button.id = 'necro-interaction-btn';
-  button.textContent = '🎃 Trick or Treat?';
-  button.style.cssText = `
-    padding: 15px 40px;
-    font-size: 20px;
-    font-weight: bold;
-    background: linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor});
-    color: white;
-    border: 3px solid white;
-    border-radius: 50px;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    font-family: 'Arial', sans-serif;
-  `;
+  // Option B
+  const optionB = createOptionElement('B', config);
   
-  button.onmouseover = () => {
-    button.style.transform = 'scale(1.1)';
-    button.style.boxShadow = '0 6px 30px rgba(0, 0, 0, 0.4)';
-  };
+  optionsContainer.appendChild(optionA);
+  optionsContainer.appendChild(ghostContainer);
+  optionsContainer.appendChild(optionB);
   
-  button.onmouseout = () => {
-    button.style.transform = 'scale(1)';
-    button.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
-  };
+  container.appendChild(questionDiv);
+  container.appendChild(optionsContainer);
+  document.body.appendChild(container);
   
-  button.onclick = () => {
-    handleInteraction(config);
-  };
-  
-  uiContainer.appendChild(ghostContainer);
-  uiContainer.appendChild(button);
-  document.body.appendChild(uiContainer);
+  // Load first question
+  loadQuestion(config, 0);
   
   // Fade in
   setTimeout(() => {
-    uiContainer.style.opacity = '1';
+    container.style.opacity = '1';
   }, 100);
   
-  console.log('✓ Interaction UI created');
+  console.log('✓ Questionnaire UI created');
 }
 
 /**
- * Handle user interaction
+ * Create option element
  */
-function handleInteraction(config) {
-  const button = document.getElementById('necro-interaction-btn');
-  const uiContainer = document.getElementById('necro-interaction-ui');
+function createOptionElement(type, config) {
+  const option = document.createElement('div');
+  option.className = `necro-option necro-option-${type}`;
+  option.style.cssText = `
+    width: 200px;
+    height: 250px;
+    background: white;
+    border: 5px solid ${config.secondaryColor};
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  `;
   
-  if (!button || !uiContainer) return;
+  // Image/emoji
+  const image = document.createElement('div');
+  image.className = 'option-image';
+  image.style.cssText = `
+    font-size: 80px;
+    margin-bottom: 15px;
+  `;
   
-  // Change button text
-  button.textContent = '🎁 Enjoy your treat!';
-  button.disabled = true;
-  button.style.cursor = 'default';
-  button.style.opacity = '0.7';
+  // Label
+  const label = document.createElement('div');
+  label.className = 'option-label';
+  label.style.cssText = `
+    font-size: 20px;
+    font-weight: bold;
+    color: ${config.primaryColor};
+    text-align: center;
+    padding: 0 10px;
+  `;
   
-  // Show reward message
-  showRewardMessage(config);
+  // Subtitle
+  const subtitle = document.createElement('div');
+  subtitle.className = 'option-subtitle';
+  subtitle.style.cssText = `
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    margin-top: 5px;
+  `;
   
-  // Mark interaction as complete
-  animationState.interactionComplete = true;
-  animationState.currentPhase = 'reward';
+  option.appendChild(image);
+  option.appendChild(label);
+  option.appendChild(subtitle);
   
-  // Fade out after 5 seconds
-  setTimeout(() => {
-    fadeOutAllElements();
-  }, 5000);
+  // Hover effect
+  option.onmouseover = () => {
+    if (!questionnaireState.isAnimating) {
+      option.style.transform = 'scale(1.05)';
+      option.style.boxShadow = '0 6px 30px rgba(0, 0, 0, 0.3)';
+    }
+  };
+  
+  option.onmouseout = () => {
+    if (!questionnaireState.isAnimating) {
+      option.style.transform = 'scale(1)';
+      option.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.2)';
+    }
+  };
+  
+  option.onclick = () => {
+    if (!questionnaireState.isAnimating) {
+      handleOptionClick(type, config);
+    }
+  };
+  
+  return option;
 }
+
+/**
+ * Load question
+ */
+function loadQuestion(config, index) {
+  const questions = config.negotiationQuestions;
+  if (!questions || index >= questions.length) return;
+  
+  const question = questions[index];
+  
+  // Update question text
+  const questionDiv = document.getElementById('necro-question');
+  if (questionDiv) {
+    questionDiv.textContent = question.question;
+  }
+  
+  // Update option A
+  const optionA = document.querySelector('.necro-option-A');
+  if (optionA) {
+    optionA.querySelector('.option-image').textContent = question.optionA.image;
+    optionA.querySelector('.option-label').textContent = question.optionA.label;
+    optionA.querySelector('.option-subtitle').textContent = question.optionA.subtitle || '';
+    optionA.dataset.value = question.optionA.value;
+  }
+  
+  // Update option B
+  const optionB = document.querySelector('.necro-option-B');
+  if (optionB) {
+    optionB.querySelector('.option-image').textContent = question.optionB.image;
+    optionB.querySelector('.option-label').textContent = question.optionB.label;
+    optionB.querySelector('.option-subtitle').textContent = question.optionB.subtitle || '';
+    optionB.dataset.value = question.optionB.value;
+  }
+  
+  console.log(`✓ Loaded question ${index + 1}/${questions.length}`);
+}
+
+/**
+ * Handle option click
+ */
+function handleOptionClick(type, config) {
+  questionnaireState.isAnimating = true;
+  
+  const option = document.querySelector(`.necro-option-${type}`);
+  const ghost = document.getElementById('necro-quiz-ghost');
+  const question = config.negotiationQuestions[questionnaireState.currentQuestionIndex];
+  
+  // Get answer value
+  const answerValue = option.dataset.value;
+  const answer = {
+    questionId: question.id,
+    question: question.question,
+    selectedOption: type,
+    value: answerValue,
+    timestamp: new Date().toISOString()
+  };
+  
+  questionnaireState.userAnswers.push(answer);
+  
+  // Flash green border
+  option.style.border = `5px solid #00ff00`;
+  option.style.boxShadow = '0 0 30px rgba(0, 255, 0, 0.8)';
+  
+  // Animate ghost flying to option
+  const optionRect = option.getBoundingClientRect();
+  const ghostRect = ghost.getBoundingClientRect();
+  
+  const deltaX = optionRect.left + optionRect.width / 2 - (ghostRect.left + ghostRect.width / 2);
+  const deltaY = optionRect.top - ghostRect.top - 50;
+  
+  ghost.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
+  
+  // After animation, load next question or finish
+  setTimeout(() => {
+    questionnaireState.currentQuestionIndex++;
+    
+    if (questionnaireState.currentQuestionIndex >= config.negotiationQuestions.length) {
+      // Finished all questions
+      finishQuestionnaire(config);
+    } else {
+      // Reset ghost position
+      ghost.style.transform = '';
+      
+      // Reset option styles
+      option.style.border = `5px solid ${config.secondaryColor}`;
+      option.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.2)';
+      
+      // Load next question
+      loadQuestion(config, questionnaireState.currentQuestionIndex);
+      questionnaireState.isAnimating = false;
+    }
+  }, 800);
+}
+
+/**
+ * Finish questionnaire
+ */
+function finishQuestionnaire(config) {
+  console.log('📊 Questionnaire Complete!');
+  console.log('User Answers:', questionnaireState.userAnswers);
+  console.log('Kicker Text Version:', config.kickerTextVersion);
+  
+  // Send data to analytics (simulated)
+  console.log('📤 Sending data to company analytics...');
+  console.log(JSON.stringify({
+    theme: config.category,
+    kickerTextVersion: config.kickerTextVersion,
+    answers: questionnaireState.userAnswers,
+    completedAt: new Date().toISOString()
+  }, null, 2));
+  
+  // Remove questionnaire UI
+  const ui = document.getElementById('necro-questionnaire-ui');
+  if (ui) {
+    ui.style.opacity = '0';
+    setTimeout(() => {
+      ui.remove();
+      // Show reward
+      showRewardMessage(config);
+      // Fade out after 5 seconds
+      setTimeout(() => {
+        fadeOutAllElements();
+      }, 5000);
+    }, 500);
+  }
+}
+
+/**
+ * Create interaction UI (now starts questionnaire)
+ */
+function createInteractionUI(config) {
+  // Directly start questionnaire instead of showing button
+  createQuestionnaireUI(config);
+}
+
+
 
 /**
  * Show reward message

@@ -146,14 +146,15 @@ function createOptionElement(type, config) {
   option.className = `necro-option necro-option-${type}`;
   option.style.cssText = `
     width: 200px;
-    height: 250px;
+    height: 280px;
     background: white;
     border: 5px solid ${config.secondaryColor};
     border-radius: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: 30px;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -164,7 +165,8 @@ function createOptionElement(type, config) {
   image.className = 'option-image';
   image.style.cssText = `
     font-size: 80px;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
+    line-height: 1;
   `;
   
   // Label
@@ -176,6 +178,7 @@ function createOptionElement(type, config) {
     color: ${config.primaryColor};
     text-align: center;
     padding: 0 10px;
+    line-height: 1.3;
   `;
   
   // Subtitle
@@ -185,7 +188,8 @@ function createOptionElement(type, config) {
     font-size: 14px;
     color: #666;
     text-align: center;
-    margin-top: 5px;
+    margin-top: 8px;
+    padding: 0 10px;
   `;
   
   option.appendChild(image);
@@ -482,10 +486,15 @@ function showGoodbyeMessage() {
  */
 function getCompanyName() {
   const hostname = window.location.hostname;
-  const parts = hostname.split('.');
   
-  // Get the main domain name
-  const mainDomain = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+  // Remove www. if present
+  const cleanHostname = hostname.replace(/^www\./, '');
+  
+  // Split by dots
+  const parts = cleanHostname.split('.');
+  
+  // Get the part before .com/.net/.org etc (the main domain)
+  const mainDomain = parts[0];
   
   // Capitalize first letter
   return mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);

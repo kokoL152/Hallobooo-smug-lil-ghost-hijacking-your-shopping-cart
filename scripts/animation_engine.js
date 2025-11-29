@@ -21,7 +21,9 @@ const animationState = {
 const questionnaireState = {
   currentQuestionIndex: 0,
   userAnswers: [],
-  isAnimating: false
+  isAnimating: false,
+  startTime: null,
+  sessionId: null
 };
 
 /**
@@ -40,6 +42,8 @@ function createQuestionnaireUI(config) {
   questionnaireState.currentQuestionIndex = 0;
   questionnaireState.userAnswers = [];
   questionnaireState.isAnimating = false;
+  questionnaireState.startTime = Date.now();
+  questionnaireState.sessionId = Date.now();
   
   // Create main container
   const container = document.createElement('div');
@@ -324,17 +328,31 @@ function handleOptionClick(type, config) {
  */
 function finishQuestionnaire(config) {
   console.log('📊 Questionnaire Complete!');
-  console.log('User Answers:', questionnaireState.userAnswers);
-  console.log('Kicker Text Version:', config.kickerTextVersion);
+  
+  // Calculate conversion time
+  const conversionTime = Date.now() - questionnaireState.startTime;
+  
+  // Collect marketing data
+  const marketingData = {
+    sessionId: questionnaireState.sessionId,
+    theme: config.category,
+    provocationVersion: config.kickerTextVersion,
+    userResponses: questionnaireState.userAnswers,
+    conversionTime: conversionTime,
+    conversionTimeFormatted: `${(conversionTime / 1000).toFixed(2)}s`,
+    timestamp: new Date().toISOString(),
+    url: window.location.href,
+    userAgent: navigator.userAgent
+  };
   
   // Send data to analytics (simulated)
-  console.log('📤 Sending data to company analytics...');
-  console.log(JSON.stringify({
-    theme: config.category,
-    kickerTextVersion: config.kickerTextVersion,
-    answers: questionnaireState.userAnswers,
-    completedAt: new Date().toISOString()
-  }, null, 2));
+  console.log('');
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('🎃 KIRO_ANALYTICS: Sending structured data to marketing team...');
+  console.log('═══════════════════════════════════════════════════════');
+  console.log(JSON.stringify(marketingData, null, 2));
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('');
   
   // Remove questionnaire UI
   const ui = document.getElementById('necro-questionnaire-ui');
@@ -342,12 +360,8 @@ function finishQuestionnaire(config) {
     ui.style.opacity = '0';
     setTimeout(() => {
       ui.remove();
-      // Show reward
-      showRewardMessage(config);
-      // Fade out after 5 seconds
-      setTimeout(() => {
-        fadeOutAllElements();
-      }, 5000);
+      // Show coupon reward with animation
+      showCouponReward(config);
     }, 500);
   }
 }
@@ -363,36 +377,198 @@ function createInteractionUI(config) {
 
 
 /**
- * Show reward message
+ * Show coupon reward with animation
  */
-function showRewardMessage(config) {
-  const rewardId = 'necro-reward-message';
+function showCouponReward(config) {
+  const rewardId = 'necro-coupon-reward';
   
-  const rewardDiv = document.createElement('div');
-  rewardDiv.id = rewardId;
-  rewardDiv.textContent = '✨ You got a spooky discount! ✨';
-  rewardDiv.style.cssText = `
+  // Create reward modal
+  const rewardModal = document.createElement('div');
+  rewardModal.id = rewardId;
+  rewardModal.style.cssText = `
     position: fixed;
-    top: 20%;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    padding: 20px 40px;
+    transform: translate(-50%, -50%);
     background: linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor});
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-    border-radius: 15px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-    z-index: 999999;
+    padding: 50px;
+    border-radius: 30px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    z-index: 9999999;
+    text-align: center;
     opacity: 0;
     transition: opacity 0.5s ease;
+    min-width: 500px;
   `;
   
-  document.body.appendChild(rewardDiv);
+  // Ghost throwing animation
+  const ghostDiv = document.createElement('div');
+  ghostDiv.innerHTML = createGhostSVG(config.kairoGhostEmotion, '#ffffff');
+  ghostDiv.style.cssText = `
+    width: 100px;
+    height: 120px;
+    margin: 0 auto 20px;
+    animation: throwCoupon 1s ease-out;
+  `;
   
+  // Title
+  const title = document.createElement('div');
+  title.textContent = '🎉 You Won! 🎉';
+  title.style.cssText = `
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  `;
+  
+  // Message
+  const message = document.createElement('div');
+  message.textContent = 'Code has been sent to your account!';
+  message.style.cssText = `
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    margin-bottom: 30px;
+  `;
+  
+  // Coupon code display
+  const couponDiv = document.createElement('div');
+  couponDiv.textContent = config.couponCode || 'SPOOKY20';
+  couponDiv.style.cssText = `
+    background: white;
+    color: ${config.primaryColor};
+    font-size: 48px;
+    font-weight: bold;
+    padding: 20px 40px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    letter-spacing: 5px;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  `;
+  
+  // Copy button
+  const copyButton = document.createElement('button');
+  copyButton.textContent = '📋 Copy Code';
+  copyButton.style.cssText = `
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    background: white;
+    color: ${config.primaryColor};
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  `;
+  
+  copyButton.onmouseover = () => {
+    copyButton.style.transform = 'scale(1.05)';
+    copyButton.style.boxShadow = '0 6px 30px rgba(0, 0, 0, 0.4)';
+  };
+  
+  copyButton.onmouseout = () => {
+    copyButton.style.transform = 'scale(1)';
+    copyButton.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+  };
+  
+  copyButton.onclick = () => {
+    copyCouponCode(config.couponCode || 'SPOOKY20', copyButton);
+  };
+  
+  // Assemble modal
+  rewardModal.appendChild(ghostDiv);
+  rewardModal.appendChild(title);
+  rewardModal.appendChild(message);
+  rewardModal.appendChild(couponDiv);
+  rewardModal.appendChild(copyButton);
+  
+  // Add animations to styles
+  const animStyle = document.createElement('style');
+  animStyle.textContent = `
+    @keyframes throwCoupon {
+      0% { transform: translateY(-100px) rotate(-20deg); opacity: 0; }
+      60% { transform: translateY(10px) rotate(5deg); opacity: 1; }
+      100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    @keyframes flashGreen {
+      0%, 100% { border-color: white; }
+      50% { border-color: #00ff00; }
+    }
+  `;
+  document.head.appendChild(animStyle);
+  
+  document.body.appendChild(rewardModal);
+  
+  // Fade in
   setTimeout(() => {
-    rewardDiv.style.opacity = '1';
+    rewardModal.style.opacity = '1';
   }, 100);
+  
+  // Auto fade out after 5 seconds
+  setTimeout(() => {
+    rewardModal.style.opacity = '0';
+    setTimeout(() => {
+      rewardModal.remove();
+      animStyle.remove();
+      fadeOutAllElements();
+    }, 500);
+  }, 5000);
+}
+
+/**
+ * Copy coupon code to clipboard
+ */
+function copyCouponCode(code, button) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      // Success feedback
+      button.textContent = '✅ Copied!';
+      button.style.background = '#00ff00';
+      button.style.color = 'white';
+      button.style.border = '3px solid white';
+      button.style.animation = 'flashGreen 0.5s ease-in-out 4';
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        button.style.opacity = '0';
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      button.textContent = '❌ Copy failed';
+    });
+  } else {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = code;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+      button.textContent = '✅ Copied!';
+      button.style.background = '#00ff00';
+      button.style.color = 'white';
+      
+      setTimeout(() => {
+        button.style.opacity = '0';
+      }, 2000);
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
+      button.textContent = '❌ Copy failed';
+    }
+    
+    document.body.removeChild(textArea);
+  }
 }
 
 /**

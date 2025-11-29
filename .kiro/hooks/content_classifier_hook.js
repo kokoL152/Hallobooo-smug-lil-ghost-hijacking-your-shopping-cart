@@ -54,6 +54,7 @@ function generateConfig(category) {
       backgroundColor: '#e0f2fe',
       kickerText: "I'm taking this ride before you! Catch me if you can! 🚗✈️",
       kickerTextVersion: Math.random() > 0.5 ? 'HighProvocation' : 'LowProvocation',
+      couponCode: 'SPOOKY20',
       kairoGhostEmotion: 'smug',
       animations: {
         enabled: true,
@@ -120,6 +121,7 @@ function generateConfig(category) {
       backgroundColor: '#fdf2f8',
       kickerText: "Look how fabulous I am! This is the last one, better hurry! 😉",
       kickerTextVersion: Math.random() > 0.5 ? 'HighProvocation' : 'LowProvocation',
+      couponCode: 'FASHION15',
       kairoGhostEmotion: 'defiant',
       animations: {
         enabled: true,
@@ -186,6 +188,7 @@ function generateConfig(category) {
       backgroundColor: '#fef3c7',
       kickerText: "Mmm, this looks delicious! Too bad it's all MINE now! 🍔",
       kickerTextVersion: Math.random() > 0.5 ? 'HighProvocation' : 'LowProvocation',
+      couponCode: 'TREAT10',
       kairoGhostEmotion: 'smug',
       animations: {
         enabled: true,
@@ -252,6 +255,7 @@ function generateConfig(category) {
       backgroundColor: '#1a1a1a',
       kickerText: "Happy Halloween! 🎃",
       kickerTextVersion: Math.random() > 0.5 ? 'HighProvocation' : 'LowProvocation',
+      couponCode: 'HALLOWEEN25',
       kairoGhostEmotion: 'evil',
       animations: {
         enabled: true,

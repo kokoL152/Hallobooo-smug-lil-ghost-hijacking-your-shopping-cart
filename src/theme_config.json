@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-11-27T10:36:51.087Z",
+  "lastUpdated": "2025-11-29T09:50:34.209Z",
   "urlClassificationRules": {
     "transportation": [
       "flight",
@@ -55,6 +55,7 @@
       "backgroundColor": "#e0f2fe",
       "kickerText": "I'm taking this ride before you! Catch me if you can! 🚗✈️",
       "kickerTextVersion": "HighProvocation",
+      "couponCode": "SPOOKY20",
       "kairoGhostEmotion": "smug",
       "animations": {
         "enabled": true,
@@ -113,7 +114,7 @@
         }
       ],
       "metadata": {
-        "generatedAt": "2025-11-27T10:36:51.083Z",
+        "generatedAt": "2025-11-29T09:50:34.205Z",
         "version": "1.0.0",
         "generator": "content_classifier_hook",
         "llmEnhanced": false
@@ -126,7 +127,8 @@
       "secondaryColor": "#fce7f3",
       "backgroundColor": "#fdf2f8",
       "kickerText": "Look how fabulous I am! This is the last one, better hurry! 😉",
-      "kickerTextVersion": "LowProvocation",
+      "kickerTextVersion": "HighProvocation",
+      "couponCode": "FASHION15",
       "kairoGhostEmotion": "defiant",
       "animations": {
         "enabled": true,
@@ -185,7 +187,7 @@
         }
       ],
       "metadata": {
-        "generatedAt": "2025-11-27T10:36:51.087Z",
+        "generatedAt": "2025-11-29T09:50:34.209Z",
         "version": "1.0.0",
         "generator": "content_classifier_hook",
         "llmEnhanced": false
@@ -198,7 +200,8 @@
       "secondaryColor": "#fbbf24",
       "backgroundColor": "#fef3c7",
       "kickerText": "Mmm, this looks delicious! Too bad it's all MINE now! 🍔",
-      "kickerTextVersion": "HighProvocation",
+      "kickerTextVersion": "LowProvocation",
+      "couponCode": "TREAT10",
       "kairoGhostEmotion": "smug",
       "animations": {
         "enabled": true,
@@ -257,7 +260,7 @@
         }
       ],
       "metadata": {
-        "generatedAt": "2025-11-27T10:36:51.087Z",
+        "generatedAt": "2025-11-29T09:50:34.209Z",
         "version": "1.0.0",
         "generator": "content_classifier_hook",
         "llmEnhanced": false
@@ -271,6 +274,7 @@
       "backgroundColor": "#1a1a1a",
       "kickerText": "Happy Halloween! 🎃",
       "kickerTextVersion": "HighProvocation",
+      "couponCode": "HALLOWEEN25",
       "kairoGhostEmotion": "evil",
       "animations": {
         "enabled": true,
@@ -329,7 +333,7 @@
         }
       ],
       "metadata": {
-        "generatedAt": "2025-11-27T10:36:51.087Z",
+        "generatedAt": "2025-11-29T09:50:34.209Z",
         "version": "1.0.0",
         "generator": "content_classifier_hook",
         "llmEnhanced": false

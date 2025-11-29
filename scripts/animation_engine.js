@@ -324,6 +324,473 @@ function handleOptionClick(type, config) {
 }
 
 /**
+ * Show data castle animation (Step 5)
+ * Uses realistic dark castle and parchment scroll with wings
+ */
+function showDataCastleAnimation(config, marketingData, callback) {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'necro-data-castle';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999998;
+    background: linear-gradient(to bottom, #0a0a0a 0%, #1a0a1a 50%, #0a0a0a 100%);
+  `;
+  
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  
+  let frame = 0;
+  const duration = 240; // 4 seconds for more dramatic effect
+  
+  // Scroll position
+  const scrollStart = { x: canvas.width * 0.2, y: canvas.height * 0.7 };
+  const castlePos = { x: canvas.width * 0.75, y: canvas.height * 0.35 };
+  
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Dark gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0a0a0a');
+    gradient.addColorStop(0.5, '#1a0a1a');
+    gradient.addColorStop(1, '#0a0a0a');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const progress = frame / duration;
+    
+    // Draw realistic dark castle
+    drawRealisticDarkCastle(ctx, castlePos.x, castlePos.y, config.primaryColor, progress);
+    
+    // Draw flying parchment scroll with wings
+    const scrollX = scrollStart.x + (castlePos.x - scrollStart.x) * progress;
+    const scrollY = scrollStart.y + (castlePos.y - scrollStart.y) * progress - Math.sin(progress * Math.PI) * 120;
+    const scrollRotation = Math.sin(progress * Math.PI * 2) * 0.2;
+    const scrollScale = 1 - progress * 0.6;
+    
+    // Draw motion trail
+    for (let i = 1; i <= 5; i++) {
+      const trailProgress = Math.max(0, progress - i * 0.03);
+      if (trailProgress > 0) {
+        const trailX = scrollStart.x + (castlePos.x - scrollStart.x) * trailProgress;
+        const trailY = scrollStart.y + (castlePos.y - scrollStart.y) * trailProgress - Math.sin(trailProgress * Math.PI) * 120;
+        ctx.globalAlpha = 0.2 - i * 0.03;
+        drawParchmentScrollWithWings(ctx, trailX, trailY, Math.sin(trailProgress * Math.PI * 2) * 0.2, 1 - trailProgress * 0.6, frame);
+      }
+    }
+    ctx.globalAlpha = 1;
+    
+    drawParchmentScrollWithWings(ctx, scrollX, scrollY, scrollRotation, scrollScale, frame);
+    
+    // Draw ghost waving
+    ctx.save();
+    ctx.translate(scrollStart.x - 80, scrollStart.y);
+    ctx.scale(2, 2);
+    drawCuteGhost(ctx, 0, 0, 1, 'smug');
+    ctx.restore();
+    
+    // Text with fade in/out
+    const textAlpha = progress < 0.15 ? progress / 0.15 : progress > 0.85 ? (1 - progress) / 0.15 : 1;
+    ctx.globalAlpha = textAlpha;
+    ctx.fillStyle = '#d4af37';
+    ctx.font = 'bold 32px "Georgia", serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 15;
+    ctx.fillText('Sending your secrets to the dark castle...', canvas.width / 2, canvas.height - 100);
+    ctx.font = '22px "Georgia", serif';
+    ctx.fillStyle = '#c0c0c0';
+    ctx.fillText('🏰 Your data flies to our mysterious vault 🏰', canvas.width / 2, canvas.height - 60);
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    
+    frame++;
+    
+    if (frame < duration) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.style.opacity = '0';
+      canvas.style.transition = 'opacity 0.8s ease';
+      setTimeout(() => {
+        canvas.remove();
+        
+        // Now log the data
+        console.log('');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('🎃 KIRO_ANALYTICS: Sending structured data to marketing team...');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log(JSON.stringify(marketingData, null, 2));
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('');
+        
+        if (callback) callback();
+      }, 800);
+    }
+  }
+  
+  animate();
+}
+
+/**
+ * Draw gothic castle
+ */
+function drawGothicCastle(ctx, x, y, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  
+  // Main tower
+  ctx.fillStyle = '#2a2a2a';
+  ctx.fillRect(-40, -80, 80, 100);
+  
+  // Tower top
+  ctx.beginPath();
+  ctx.moveTo(-40, -80);
+  ctx.lineTo(0, -120);
+  ctx.lineTo(40, -80);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Side towers
+  ctx.fillRect(-60, -40, 20, 60);
+  ctx.fillRect(40, -40, 20, 60);
+  
+  // Windows
+  ctx.fillStyle = color;
+  ctx.fillRect(-20, -60, 15, 20);
+  ctx.fillRect(5, -60, 15, 20);
+  ctx.fillRect(-10, -30, 20, 25);
+  
+  // Door
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(-15, 0, 30, 20);
+  
+  // Glow effect
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 20;
+  ctx.strokeRect(-40, -80, 80, 100);
+  
+  ctx.restore();
+}
+
+/**
+ * Draw data envelope
+ */
+function drawDataEnvelope(ctx, x, y, rotation, scale) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.scale(scale, scale);
+  
+  // Envelope body
+  ctx.fillStyle = '#f4e4c1';
+  ctx.strokeStyle = '#8b4513';
+  ctx.lineWidth = 2;
+  
+  ctx.beginPath();
+  ctx.rect(-30, -20, 60, 40);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Envelope flap
+  ctx.fillStyle = '#d4c4a1';
+  ctx.beginPath();
+  ctx.moveTo(-30, -20);
+  ctx.lineTo(0, 0);
+  ctx.lineTo(30, -20);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  
+  // Data symbol
+  ctx.fillStyle = '#8b4513';
+  ctx.font = 'bold 20px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('📊', 0, 5);
+  
+  ctx.restore();
+}
+
+/**
+ * Draw realistic dark castle with detailed architecture
+ */
+function drawRealisticDarkCastle(ctx, x, y, glowColor, progress) {
+  ctx.save();
+  ctx.translate(x, y);
+  
+  const scale = 2.5;
+  ctx.scale(scale, scale);
+  
+  // Background glow
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 40;
+  
+  // Main castle body - dark stone
+  const gradient = ctx.createLinearGradient(-60, -100, 60, 50);
+  gradient.addColorStop(0, '#1a1a1a');
+  gradient.addColorStop(0.5, '#2a2a2a');
+  gradient.addColorStop(1, '#1a1a1a');
+  ctx.fillStyle = gradient;
+  
+  // Central tower
+  ctx.fillRect(-35, -90, 70, 140);
+  
+  // Tower battlements
+  for (let i = -35; i < 35; i += 14) {
+    ctx.fillRect(i, -90, 10, -8);
+  }
+  
+  // Side towers
+  ctx.fillRect(-65, -60, 25, 110);
+  ctx.fillRect(40, -60, 25, 110);
+  
+  // Side tower battlements
+  for (let i = -65; i < -40; i += 12) {
+    ctx.fillRect(i, -60, 8, -6);
+  }
+  for (let i = 40; i < 65; i += 12) {
+    ctx.fillRect(i, -60, 8, -6);
+  }
+  
+  // Stone texture lines
+  ctx.strokeStyle = '#0a0a0a';
+  ctx.lineWidth = 1;
+  for (let i = -80; i < 50; i += 10) {
+    ctx.beginPath();
+    ctx.moveTo(-65, i);
+    ctx.lineTo(65, i);
+    ctx.stroke();
+  }
+  
+  // Windows with eerie glow
+  ctx.fillStyle = glowColor;
+  ctx.shadowBlur = 20;
+  
+  // Central tower windows
+  ctx.fillRect(-20, -70, 12, 18);
+  ctx.fillRect(8, -70, 12, 18);
+  ctx.fillRect(-20, -45, 12, 18);
+  ctx.fillRect(8, -45, 12, 18);
+  ctx.fillRect(-15, -20, 30, 25);
+  
+  // Side tower windows
+  ctx.fillRect(-58, -45, 10, 15);
+  ctx.fillRect(-58, -20, 10, 15);
+  ctx.fillRect(48, -45, 10, 15);
+  ctx.fillRect(48, -20, 10, 15);
+  
+  // Main gate
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = '#0a0a0a';
+  ctx.beginPath();
+  ctx.arc(0, 30, 18, 0, Math.PI, true);
+  ctx.lineTo(-18, 50);
+  ctx.lineTo(18, 50);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Gate details
+  ctx.strokeStyle = '#3a3a3a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-10, 20);
+  ctx.lineTo(-10, 50);
+  ctx.moveTo(10, 20);
+  ctx.lineTo(10, 50);
+  ctx.stroke();
+  
+  // Spires on towers
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.moveTo(-52, -60);
+  ctx.lineTo(-52, -85);
+  ctx.lineTo(-45, -60);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.moveTo(52, -60);
+  ctx.lineTo(52, -85);
+  ctx.lineTo(45, -60);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Lightning effect (occasional)
+  if (progress > 0.3 && progress < 0.35) {
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 30;
+    ctx.beginPath();
+    ctx.moveTo(-80, -120);
+    ctx.lineTo(-60, -90);
+    ctx.lineTo(-70, -90);
+    ctx.lineTo(-50, -60);
+    ctx.stroke();
+  }
+  
+  // Fog at base
+  ctx.shadowBlur = 0;
+  const fogGradient = ctx.createRadialGradient(0, 50, 0, 0, 50, 80);
+  fogGradient.addColorStop(0, 'rgba(100, 100, 120, 0.3)');
+  fogGradient.addColorStop(1, 'rgba(100, 100, 120, 0)');
+  ctx.fillStyle = fogGradient;
+  ctx.fillRect(-80, 30, 160, 40);
+  
+  ctx.restore();
+}
+
+/**
+ * Draw parchment scroll with wings flying
+ */
+function drawParchmentScrollWithWings(ctx, x, y, rotation, scale, frame) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.scale(scale, scale);
+  
+  // Wing flapping animation
+  const wingFlap = Math.sin(frame * 0.2) * 0.3;
+  
+  // Left wing
+  ctx.save();
+  ctx.translate(-35, 0);
+  ctx.rotate(wingFlap);
+  
+  // Wing gradient
+  const leftWingGradient = ctx.createLinearGradient(-30, -20, 0, 0);
+  leftWingGradient.addColorStop(0, '#f4e4c1');
+  leftWingGradient.addColorStop(0.5, '#e8d4a8');
+  leftWingGradient.addColorStop(1, '#d4c4a1');
+  ctx.fillStyle = leftWingGradient;
+  
+  // Wing shape
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(-25, -15, -35, -10);
+  ctx.quadraticCurveTo(-30, 0, -35, 10);
+  ctx.quadraticCurveTo(-25, 15, 0, 0);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Wing feather details
+  ctx.strokeStyle = '#8b7355';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-5 - i * 7, -8 + i * 4);
+    ctx.lineTo(-15 - i * 5, -5 + i * 3);
+    ctx.stroke();
+  }
+  
+  ctx.restore();
+  
+  // Right wing
+  ctx.save();
+  ctx.translate(35, 0);
+  ctx.rotate(-wingFlap);
+  
+  // Wing gradient
+  const rightWingGradient = ctx.createLinearGradient(0, -20, 30, 0);
+  rightWingGradient.addColorStop(0, '#f4e4c1');
+  rightWingGradient.addColorStop(0.5, '#e8d4a8');
+  rightWingGradient.addColorStop(1, '#d4c4a1');
+  ctx.fillStyle = rightWingGradient;
+  
+  // Wing shape
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(25, -15, 35, -10);
+  ctx.quadraticCurveTo(30, 0, 35, 10);
+  ctx.quadraticCurveTo(25, 15, 0, 0);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Wing feather details
+  ctx.strokeStyle = '#8b7355';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(5 + i * 7, -8 + i * 4);
+    ctx.lineTo(15 + i * 5, -5 + i * 3);
+    ctx.stroke();
+  }
+  
+  ctx.restore();
+  
+  // Parchment scroll body
+  const scrollGradient = ctx.createLinearGradient(-30, -25, 30, 25);
+  scrollGradient.addColorStop(0, '#f4e4c1');
+  scrollGradient.addColorStop(0.5, '#e8d4a8');
+  scrollGradient.addColorStop(1, '#d4c4a1');
+  ctx.fillStyle = scrollGradient;
+  ctx.strokeStyle = '#8b7355';
+  ctx.lineWidth = 2;
+  
+  // Scroll rectangle
+  ctx.beginPath();
+  ctx.roundRect(-30, -25, 60, 50, 3);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Rolled edges
+  ctx.fillStyle = '#d4c4a1';
+  ctx.beginPath();
+  ctx.ellipse(-30, 0, 4, 25, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.ellipse(30, 0, 4, 25, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Wax seal
+  ctx.fillStyle = '#8b0000';
+  ctx.shadowColor = '#8b0000';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Seal pattern
+  ctx.fillStyle = '#a00000';
+  ctx.font = 'bold 10px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowBlur = 0;
+  ctx.fillText('K', 0, 0);
+  
+  // Ancient text on scroll
+  ctx.fillStyle = '#5a4a3a';
+  ctx.font = '8px "Georgia", serif';
+  ctx.fillText('Data Secrets', 0, -12);
+  ctx.fillText('Confidential', 0, 12);
+  
+  // Sparkle trail
+  ctx.fillStyle = '#ffd700';
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 15;
+  for (let i = 0; i < 3; i++) {
+    const sparkleX = -40 - i * 10;
+    const sparkleY = Math.sin(frame * 0.1 + i) * 10;
+    ctx.beginPath();
+    ctx.arc(sparkleX, sparkleY, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  ctx.restore();
+}
+
+/**
  * Finish questionnaire
  */
 function finishQuestionnaire(config) {
@@ -345,14 +812,228 @@ function finishQuestionnaire(config) {
     userAgent: navigator.userAgent
   };
   
-  // Send data to analytics (simulated)
-  console.log('');
-  console.log('═══════════════════════════════════════════════════════');
-  console.log('🎃 KIRO_ANALYTICS: Sending structured data to marketing team...');
-  console.log('═══════════════════════════════════════════════════════');
-  console.log(JSON.stringify(marketingData, null, 2));
-  console.log('═══════════════════════════════════════════════════════');
-  console.log('');
+  // Remove questionnaire UI
+  const ui = document.getElementById('necro-questionnaire-ui');
+  if (ui) {
+    ui.style.opacity = '0';
+    setTimeout(() => {
+      ui.remove();
+      
+      // Show data castle animation (Step 5)
+      showDataCastleAnimation(config, marketingData, () => {
+        // Show coupon reward with animation (Step 6)
+        showCouponReward(config);
+      });
+    }, 500);
+  }
+}
+
+/**
+ * Create interaction UI (now starts questionnaire)
+ * Step 3: Show magic scroll before questionnaire
+ */
+function createInteractionUI(config) {
+  // Show magic scroll animation (Step 3) after provocation animation
+  showMagicScrollAnimation(config, () => {
+    // Then start questionnaire
+    createQuestionnaireUI(config);
+  });
+}
+
+
+
+/**
+ * Show magic trick animation before coupon reveal (Step 6)
+ */
+function showMagicTrickAnimation(config, callback) {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'necro-magic-trick';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999998;
+    background: rgba(0, 0, 0, 0.9);
+  `;
+  
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  
+  let frame = 0;
+  const duration = 180; // 3 seconds
+  
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const progress = frame / duration;
+    
+    // Draw ghost
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.scale(3, 3);
+    drawCuteGhost(ctx, 0, 0, 1, 'smug');
+    ctx.restore();
+    
+    // Magic wand/hand gesture
+    if (progress < 0.6) {
+      ctx.save();
+      ctx.translate(centerX + 150, centerY - 80);
+      ctx.rotate(Math.sin(frame * 0.2) * 0.3);
+      
+      // Wand
+      ctx.strokeStyle = '#8b4513';
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -70);
+      ctx.stroke();
+      
+      // Star tip
+      ctx.fillStyle = '#ffd700';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 25;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * Math.PI * 2 / 5) - Math.PI / 2;
+        const radius = i % 2 === 0 ? 18 : 8;
+        const px = Math.cos(angle) * radius;
+        const py = -70 + Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    
+    // Magic sparkles expanding
+    if (progress > 0.4) {
+      ctx.shadowBlur = 15;
+      for (let i = 0; i < 15; i++) {
+        const angle = (i / 15) * Math.PI * 2 + frame * 0.1;
+        const radius = 180 + (progress - 0.4) * 300;
+        const sparkleX = centerX + Math.cos(angle) * radius;
+        const sparkleY = centerY + Math.sin(angle) * radius;
+        
+        const sparkleAlpha = progress < 0.7 ? 1 : 1 - (progress - 0.7) / 0.3;
+        ctx.globalAlpha = sparkleAlpha;
+        ctx.fillStyle = i % 2 === 0 ? '#ffd700' : '#ff69b4';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.beginPath();
+        ctx.arc(sparkleX, sparkleY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Cross sparkle
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(sparkleX - 10, sparkleY);
+        ctx.lineTo(sparkleX + 10, sparkleY);
+        ctx.moveTo(sparkleX, sparkleY - 10);
+        ctx.lineTo(sparkleX, sparkleY + 10);
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+    }
+    
+    // Pocket animation - ghost pulling out code
+    if (progress > 0.5 && progress < 0.75) {
+      const pocketProgress = (progress - 0.5) / 0.25;
+      ctx.save();
+      ctx.translate(centerX - 50, centerY + 80);
+      
+      // Pocket
+      ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
+      ctx.beginPath();
+      ctx.arc(0, 0, 30, 0, Math.PI);
+      ctx.fill();
+      
+      // Code card emerging from pocket
+      const cardY = -pocketProgress * 60;
+      ctx.fillStyle = '#ffd700';
+      ctx.strokeStyle = '#ff6b00';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 20;
+      ctx.fillRect(-25, cardY, 50, 35);
+      ctx.strokeRect(-25, cardY, 50, 35);
+      
+      // Code text on card
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.shadowBlur = 0;
+      ctx.fillText(config.couponCode || 'SPOOKY20', 0, cardY + 20);
+      
+      ctx.restore();
+    }
+    
+    // Coupon code appearing large
+    if (progress > 0.75) {
+      const codeAlpha = (progress - 0.75) / 0.25;
+      ctx.globalAlpha = codeAlpha;
+      ctx.fillStyle = '#ffd700';
+      ctx.font = 'bold 72px Arial';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 40;
+      ctx.fillText(config.couponCode || 'SPOOKY20', centerX, centerY + 180);
+      
+      // Subtitle
+      ctx.font = 'bold 28px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.shadowBlur = 20;
+      ctx.fillText('✨ Your Special Treat! ✨', centerX, centerY + 230);
+    }
+    
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    
+    frame++;
+    
+    if (frame < duration) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.style.opacity = '0';
+      canvas.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => {
+        canvas.remove();
+        if (callback) callback();
+      }, 500);
+    }
+  }
+  
+  animate();
+}
+
+/**
+ * Finish questionnaire
+ */
+function finishQuestionnaire(config) {
+  console.log('📊 Questionnaire Complete!');
+  
+  // Calculate conversion time
+  const conversionTime = Date.now() - questionnaireState.startTime;
+  
+  // Collect marketing data
+  const marketingData = {
+    sessionId: questionnaireState.sessionId,
+    theme: config.category,
+    provocationVersion: config.kickerTextVersion,
+    userResponses: questionnaireState.userAnswers,
+    conversionTime: conversionTime,
+    conversionTimeFormatted: `${(conversionTime / 1000).toFixed(2)}s`,
+    timestamp: new Date().toISOString(),
+    url: window.location.href,
+    userAgent: navigator.userAgent
+  };
   
   // Remove questionnaire UI
   const ui = document.getElementById('necro-questionnaire-ui');
@@ -360,31 +1041,24 @@ function finishQuestionnaire(config) {
     ui.style.opacity = '0';
     setTimeout(() => {
       ui.remove();
-      // Show coupon reward with animation
-      showCouponReward(config);
+      
+      // Show data castle animation (Step 5)
+      showDataCastleAnimation(config, marketingData, () => {
+        // Show magic trick then coupon (Step 6)
+        showMagicTrickAnimation(config, () => {
+          showCouponReward(config);
+        });
+      });
     }, 500);
   }
 }
 
 /**
- * Create interaction UI (now starts questionnaire)
- */
-function createInteractionUI(config) {
-  // Directly start questionnaire instead of showing button
-  createQuestionnaireUI(config);
-}
-
-
-
-/**
- * Show coupon reward with animation
+ * Show coupon reward modal (Step 7)
  */
 function showCouponReward(config) {
-  const rewardId = 'necro-coupon-reward';
-  
-  // Create reward modal
   const rewardModal = document.createElement('div');
-  rewardModal.id = rewardId;
+  rewardModal.id = 'necro-reward-modal';
   rewardModal.style.cssText = `
     position: fixed;
     top: 50%;
@@ -395,20 +1069,21 @@ function showCouponReward(config) {
     border-radius: 30px;
     box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
     z-index: 9999999;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     opacity: 0;
     transition: opacity 0.5s ease;
-    min-width: 500px;
   `;
   
-  // Ghost throwing animation
+  // Ghost SVG
   const ghostDiv = document.createElement('div');
   ghostDiv.innerHTML = createGhostSVG(config.kairoGhostEmotion, '#ffffff');
   ghostDiv.style.cssText = `
-    width: 100px;
-    height: 120px;
-    margin: 0 auto 20px;
-    animation: throwCoupon 1s ease-out;
+    width: 120px;
+    height: 140px;
+    margin-bottom: 20px;
+    animation: breathe 3s ease-in-out infinite;
   `;
   
   // Title
@@ -939,6 +1614,137 @@ function removeAllKiroElements() {
 }
 
 /**
+ * Show magic scroll animation (Step 3)
+ */
+function showMagicScrollAnimation(config, callback) {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'necro-magic-scroll';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999998;
+    pointer-events: none;
+  `;
+  
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  
+  let frame = 0;
+  const duration = 180; // 3 seconds at 60fps
+  
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const progress = frame / duration;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // Fade in/out
+    const alpha = progress < 0.2 ? progress / 0.2 : 
+                  progress > 0.8 ? (1 - progress) / 0.2 : 1;
+    
+    ctx.globalAlpha = alpha;
+    
+    // Draw scroll background
+    const scrollWidth = 600;
+    const scrollHeight = 300;
+    
+    // Scroll paper
+    ctx.fillStyle = '#f4e4c1';
+    ctx.strokeStyle = '#8b4513';
+    ctx.lineWidth = 3;
+    
+    // Rolled edges
+    ctx.beginPath();
+    ctx.moveTo(centerX - scrollWidth/2, centerY - scrollHeight/2);
+    ctx.lineTo(centerX + scrollWidth/2, centerY - scrollHeight/2);
+    ctx.lineTo(centerX + scrollWidth/2, centerY + scrollHeight/2);
+    ctx.lineTo(centerX - scrollWidth/2, centerY + scrollHeight/2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Decorative corners
+    ctx.fillStyle = '#8b4513';
+    const cornerSize = 20;
+    // Top left
+    ctx.beginPath();
+    ctx.arc(centerX - scrollWidth/2 + 30, centerY - scrollHeight/2 + 30, cornerSize, 0, Math.PI * 2);
+    ctx.fill();
+    // Top right
+    ctx.beginPath();
+    ctx.arc(centerX + scrollWidth/2 - 30, centerY - scrollHeight/2 + 30, cornerSize, 0, Math.PI * 2);
+    ctx.fill();
+    // Bottom left
+    ctx.beginPath();
+    ctx.arc(centerX - scrollWidth/2 + 30, centerY + scrollHeight/2 - 30, cornerSize, 0, Math.PI * 2);
+    ctx.fill();
+    // Bottom right
+    ctx.beginPath();
+    ctx.arc(centerX + scrollWidth/2 - 30, centerY + scrollHeight/2 - 30, cornerSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Magic sparkles
+    for (let i = 0; i < 5; i++) {
+      const angle = (frame * 0.05 + i * Math.PI * 2 / 5);
+      const radius = 250 + Math.sin(frame * 0.1 + i) * 20;
+      const sparkleX = centerX + Math.cos(angle) * radius;
+      const sparkleY = centerY + Math.sin(angle) * radius;
+      
+      ctx.fillStyle = config.primaryColor;
+      ctx.beginPath();
+      ctx.arc(sparkleX, sparkleY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Sparkle rays
+      ctx.strokeStyle = config.primaryColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sparkleX - 10, sparkleY);
+      ctx.lineTo(sparkleX + 10, sparkleY);
+      ctx.moveTo(sparkleX, sparkleY - 10);
+      ctx.lineTo(sparkleX, sparkleY + 10);
+      ctx.stroke();
+    }
+    
+    // Text
+    ctx.fillStyle = config.primaryColor;
+    ctx.font = 'bold 32px "Georgia", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const text1 = 'Tell Ghost Your Deepest Secrets';
+    const text2 = 'for a Sweetest Treat!';
+    
+    ctx.fillText(text1, centerX, centerY - 20);
+    ctx.fillText(text2, centerX, centerY + 20);
+    
+    // Ghost emoji
+    ctx.font = '60px Arial';
+    ctx.fillText('👻', centerX, centerY - 100);
+    
+    frame++;
+    
+    if (frame < duration) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.style.opacity = '0';
+      setTimeout(() => {
+        canvas.remove();
+        if (callback) callback();
+      }, 500);
+    }
+  }
+  
+  animate();
+}
+
+/**
  * Start full experience after acceptance
  */
 function startFullExperience(config) {
@@ -951,7 +1757,7 @@ function startFullExperience(config) {
   // Display kicker text notification
   displayKickerNotification(config.kickerText);
   
-  // Execute animation based on type
+  // Execute animation based on type (飞机/穿bra等挑衅动画)
   executeAnimation(config);
   
   console.log('✓ Full experience started!');

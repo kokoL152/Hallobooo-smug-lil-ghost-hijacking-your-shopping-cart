@@ -7,10 +7,12 @@
  * Global animation state manager
  */
 const animationState = {
-  currentPhase: 'animation', // phases: animation, interaction, reward, fadeout
+  currentPhase: 'invitation', // phases: invitation, animation, interaction, reward, fadeout
   loopCount: 0,
-  maxLoops: 1, // Changed from 2 to 1 - play animation only once
-  interactionComplete: false
+  maxLoops: 1,
+  interactionComplete: false,
+  userAccepted: false,
+  permanentlyDismissed: false
 };
 
 /**
@@ -476,19 +478,285 @@ function showGoodbyeMessage() {
 }
 
 /**
- * Global initialization function called by content_script.js
- * @param {Object} config - Theme configuration object
+ * Extract company name from URL
  */
-function initializeAnimationEngine(config) {
-  console.log('🎨 Initializing Animation Engine...');
-  console.log('Theme:', config.themeName);
-  console.log('Emotion:', config.kairoGhostEmotion);
+function getCompanyName() {
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
   
-  // Reset animation state
+  // Get the main domain name
+  const mainDomain = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+  
+  // Capitalize first letter
+  return mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
+}
+
+/**
+ * Shake page effect
+ */
+function shakePageEffect() {
+  const shakeStyle = document.createElement('style');
+  shakeStyle.id = 'necro-shake-style';
+  shakeStyle.textContent = `
+    @keyframes necroShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    
+    body.necro-shaking {
+      animation: necroShake 0.15s ease-in-out 3;
+    }
+  `;
+  
+  document.head.appendChild(shakeStyle);
+  document.body.classList.add('necro-shaking');
+  
+  // Remove shake after animation
+  setTimeout(() => {
+    document.body.classList.remove('necro-shaking');
+    setTimeout(() => {
+      if (shakeStyle.parentNode) {
+        shakeStyle.remove();
+      }
+    }, 500);
+  }, 500);
+}
+
+/**
+ * Create invitation modal
+ */
+function createInvitationModal(config) {
+  const modalId = 'necro-invitation-modal';
+  
+  // Check if already dismissed
+  if (animationState.permanentlyDismissed) {
+    console.log('User previously dismissed invitation');
+    return;
+  }
+  
+  // Create modal overlay
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  `;
+  
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor});
+    padding: 50px;
+    border-radius: 30px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    max-width: 600px;
+    position: relative;
+  `;
+  
+  // Ghost SVG
+  const ghostDiv = document.createElement('div');
+  ghostDiv.innerHTML = createGhostSVG(config.kairoGhostEmotion, '#ffffff');
+  ghostDiv.style.cssText = `
+    width: 150px;
+    height: 180px;
+    margin: 0 auto 30px;
+    animation: breathe 3s ease-in-out infinite;
+  `;
+  
+  // Company name
+  const companyName = getCompanyName();
+  
+  // Title
+  const title = document.createElement('h2');
+  title.textContent = `${companyName} invites you to Trick or Treat!`;
+  title.style.cssText = `
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  `;
+  
+  // Subtitle
+  const subtitle = document.createElement('p');
+  subtitle.textContent = '🎃 Join our Halloween adventure for exclusive treats! 🎃';
+  subtitle.style.cssText = `
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    margin-bottom: 30px;
+  `;
+  
+  // Buttons container
+  const buttonsDiv = document.createElement('div');
+  buttonsDiv.style.cssText = `
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  `;
+  
+  // Yes button
+  const yesButton = document.createElement('button');
+  yesButton.textContent = '✨ Yes, Join!';
+  yesButton.style.cssText = `
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    background: white;
+    color: ${config.primaryColor};
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  `;
+  
+  yesButton.onmouseover = () => {
+    yesButton.style.transform = 'scale(1.1)';
+    yesButton.style.boxShadow = '0 6px 30px rgba(0, 0, 0, 0.4)';
+  };
+  
+  yesButton.onmouseout = () => {
+    yesButton.style.transform = 'scale(1)';
+    yesButton.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+  };
+  
+  yesButton.onclick = () => {
+    handleInvitationAccept(config);
+  };
+  
+  // No button
+  const noButton = document.createElement('button');
+  noButton.textContent = '👋 No, thanks';
+  noButton.style.cssText = `
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  `;
+  
+  noButton.onmouseover = () => {
+    noButton.style.background = 'rgba(255, 255, 255, 0.3)';
+    noButton.style.transform = 'scale(1.05)';
+  };
+  
+  noButton.onmouseout = () => {
+    noButton.style.background = 'rgba(255, 255, 255, 0.2)';
+    noButton.style.transform = 'scale(1)';
+  };
+  
+  noButton.onclick = () => {
+    handleInvitationDecline();
+  };
+  
+  // Assemble modal
+  buttonsDiv.appendChild(yesButton);
+  buttonsDiv.appendChild(noButton);
+  
+  modalContent.appendChild(ghostDiv);
+  modalContent.appendChild(title);
+  modalContent.appendChild(subtitle);
+  modalContent.appendChild(buttonsDiv);
+  
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  
+  // Fade in
+  setTimeout(() => {
+    modal.style.opacity = '1';
+  }, 100);
+  
+  console.log('✓ Invitation modal created');
+}
+
+/**
+ * Handle invitation accept
+ */
+function handleInvitationAccept(config) {
+  console.log('✅ User accepted invitation!');
+  
+  animationState.userAccepted = true;
   animationState.currentPhase = 'animation';
-  animationState.loopCount = 0;
-  animationState.interactionComplete = false;
   
+  // Remove modal
+  const modal = document.getElementById('necro-invitation-modal');
+  if (modal) {
+    modal.style.opacity = '0';
+    setTimeout(() => {
+      modal.remove();
+      
+      // Start the full experience
+      startFullExperience(config);
+    }, 500);
+  }
+}
+
+/**
+ * Handle invitation decline
+ */
+function handleInvitationDecline() {
+  console.log('❌ User declined invitation');
+  
+  animationState.permanentlyDismissed = true;
+  animationState.currentPhase = 'fadeout';
+  
+  // Remove modal
+  const modal = document.getElementById('necro-invitation-modal');
+  if (modal) {
+    modal.style.opacity = '0';
+    setTimeout(() => {
+      modal.remove();
+    }, 500);
+  }
+  
+  // Remove all Kiro elements permanently
+  removeAllKiroElements();
+  
+  console.log('✓ Kiro permanently dismissed for this session');
+}
+
+/**
+ * Remove all Kiro elements
+ */
+function removeAllKiroElements() {
+  const elements = [
+    document.getElementById('necro-interaction-ui'),
+    document.getElementById('necro-questionnaire-ui'),
+    document.getElementById('necro-reward-message'),
+    document.getElementById('necro-animation-canvas'),
+    document.getElementById('kiro-ghost'),
+    document.getElementById('necro-kicker'),
+    document.getElementById('necronomicon-theme-styles')
+  ];
+  
+  elements.forEach(el => {
+    if (el && el.parentNode) {
+      el.remove();
+    }
+  });
+}
+
+/**
+ * Start full experience after acceptance
+ */
+function startFullExperience(config) {
   // Inject theme styles
   injectThemeStyles(config);
   
@@ -501,7 +769,39 @@ function initializeAnimationEngine(config) {
   // Execute animation based on type
   executeAnimation(config);
   
-  console.log('✓ Animation Engine initialized successfully!');
+  console.log('✓ Full experience started!');
+}
+
+/**
+ * Global initialization function called by content_script.js
+ * @param {Object} config - Theme configuration object
+ */
+function initializeAnimationEngine(config) {
+  console.log('🎨 Initializing Animation Engine...');
+  console.log('Theme:', config.themeName);
+  console.log('Emotion:', config.kairoGhostEmotion);
+  
+  // Reset animation state
+  animationState.currentPhase = 'invitation';
+  animationState.loopCount = 0;
+  animationState.interactionComplete = false;
+  animationState.userAccepted = false;
+  
+  // Check if user previously dismissed
+  if (animationState.permanentlyDismissed) {
+    console.log('User previously dismissed, skipping initialization');
+    return;
+  }
+  
+  // Shake page effect
+  shakePageEffect();
+  
+  // Show invitation modal after shake
+  setTimeout(() => {
+    createInvitationModal(config);
+  }, 600);
+  
+  console.log('✓ Animation Engine initialized with invitation flow!');
 }
 
 /**

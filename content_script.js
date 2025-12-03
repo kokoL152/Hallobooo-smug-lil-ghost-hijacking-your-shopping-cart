@@ -20,19 +20,47 @@ async function loadConfigAndExecute() {
     let matchedCategory = 'general'; // default fallback
     const urlRules = config.urlClassificationRules;
     
+    // Extract domain and path for better matching
+    const urlObj = new URL(window.location.href);
+    const domain = urlObj.hostname.toLowerCase();
+    const path = urlObj.pathname.toLowerCase();
+    const fullUrl = currentUrl;
+    
+    console.log('🔍 URL Analysis:', { domain, path });
+    
+    // Priority-based matching: domain > path > full URL
     for (const [category, keywords] of Object.entries(urlRules)) {
       if (category === 'general') continue; // Check general last
       
-      // Check if any keyword matches the current URL
-      const isMatch = keywords.some(keyword => 
-        currentUrl.includes(keyword.toLowerCase())
-      );
+      // Check if any keyword matches
+      const isMatch = keywords.some(keyword => {
+        const lowerKeyword = keyword.toLowerCase();
+        
+        // Priority 1: Exact domain match (e.g., "united.com" matches "www.united.com")
+        if (domain.includes(lowerKeyword) || lowerKeyword.includes(domain.replace('www.', ''))) {
+          console.log(`✓ Domain match: ${keyword} in ${domain}`);
+          return true;
+        }
+        
+        // Priority 2: Path contains keyword (but not in query params)
+        if (path.includes(lowerKeyword) && !urlObj.search.toLowerCase().includes(lowerKeyword)) {
+          console.log(`✓ Path match: ${keyword} in ${path}`);
+          return true;
+        }
+        
+        return false;
+      });
       
       if (isMatch) {
         matchedCategory = category;
         console.log(`✓ Matched category: ${category}`);
         break;
       }
+    }
+    
+    // If still general, log for debugging
+    if (matchedCategory === 'general') {
+      console.log('ℹ️ No specific category matched, using general theme');
     }
     
     // Get theme configuration for matched category

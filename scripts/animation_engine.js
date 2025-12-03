@@ -831,9 +831,21 @@ function finishQuestionnaire(config) {
 /**
  * Create interaction UI (now starts questionnaire)
  * Step 3: Show magic scroll before questionnaire
+ * Note: General theme skips questionnaire and goes straight to goodbye
  */
 function createInteractionUI(config) {
-  // Show magic scroll animation (Step 3) after provocation animation
+  // Check if this is general theme - skip questionnaire
+  if (config.category === 'general') {
+    console.log('ℹ️ General theme detected - skipping questionnaire');
+    
+    // Show a simple thank you message instead
+    setTimeout(() => {
+      showGeneralThemeGoodbye(config);
+    }, 1000);
+    return;
+  }
+  
+  // For specific themes: Show magic scroll animation (Step 3) after provocation animation
   showMagicScrollAnimation(config, () => {
     // Then start questionnaire
     createQuestionnaireUI(config);
@@ -1286,6 +1298,56 @@ function fadeOutAllElements() {
 }
 
 /**
+ * Show goodbye message for general theme (no questionnaire)
+ */
+function showGeneralThemeGoodbye(config) {
+  const goodbyeId = 'necro-general-goodbye';
+  
+  const goodbyeDiv = document.createElement('div');
+  goodbyeDiv.id = goodbyeId;
+  goodbyeDiv.innerHTML = `
+    <div style="font-size: 64px; margin-bottom: 20px;">👻</div>
+    <div style="font-size: 36px; font-weight: bold; margin-bottom: 15px;">Thanks for playing!</div>
+    <div style="font-size: 20px; opacity: 0.9; margin-bottom: 10px;">Kiro the ghost had fun haunting your browser 🎃</div>
+    <div style="font-size: 18px; opacity: 0.7;">Back to your regular browsing...</div>
+  `;
+  goodbyeDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 50px 70px;
+    background: linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor});
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    border-radius: 25px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.6);
+    z-index: 9999999;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  `;
+  
+  document.body.appendChild(goodbyeDiv);
+  
+  setTimeout(() => {
+    goodbyeDiv.style.opacity = '1';
+  }, 100);
+  
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    goodbyeDiv.style.opacity = '0';
+    setTimeout(() => {
+      if (goodbyeDiv.parentNode) {
+        goodbyeDiv.remove();
+      }
+      // Fade out all elements
+      fadeOutAllElements();
+    }, 500);
+  }, 4000);
+}
+
+/**
  * Show goodbye message
  */
 function showGoodbyeMessage() {
@@ -1333,22 +1395,139 @@ function showGoodbyeMessage() {
 }
 
 /**
- * Extract company name from URL
+ * Extract company name from URL with intelligent parsing
+ * Handles various URL patterns like:
+ * - www.company.com → Company
+ * - open.spotify.com → Spotify
+ * - shop.nike.com → Nike
+ * - careers.google.com → Google
+ * - amazon.co.uk → Amazon
  */
 function getCompanyName() {
   const hostname = window.location.hostname;
   
-  // Remove www. if present
-  const cleanHostname = hostname.replace(/^www\./, '');
+  // Known company name mappings for special cases
+  const knownCompanies = {
+    'open.spotify': 'Spotify',
+    'play.spotify': 'Spotify',
+    'accounts.google': 'Google',
+    'mail.google': 'Google',
+    'drive.google': 'Google',
+    'docs.google': 'Google',
+    'careers.google': 'Google',
+    'shop.nike': 'Nike',
+    'store.nike': 'Nike',
+    'www.victoriassecret': "Victoria's Secret",
+    'victoriassecret': "Victoria's Secret",
+    'savagex': 'Savage X Fenty',
+    'thirdlove': 'ThirdLove',
+    'spirithalloween': 'Spirit Halloween',
+    'partycity': 'Party City'
+  };
+  
+  // Remove www. prefix
+  let cleanHostname = hostname.replace(/^www\./, '');
+  
+  // Check known companies first (for subdomain patterns)
+  for (const [pattern, name] of Object.entries(knownCompanies)) {
+    if (cleanHostname.startsWith(pattern)) {
+      return name;
+    }
+  }
   
   // Split by dots
   const parts = cleanHostname.split('.');
   
-  // Get the part before .com/.net/.org etc (the main domain)
-  const mainDomain = parts[0];
+  // Strategy 1: If subdomain exists (e.g., open.spotify.com)
+  // Use the second-to-last part (before TLD)
+  if (parts.length >= 3) {
+    // Check if first part is a common subdomain
+    const commonSubdomains = [
+      'open', 'play', 'shop', 'store', 'careers', 'jobs', 
+      'accounts', 'mail', 'drive', 'docs', 'api', 'app',
+      'my', 'secure', 'login', 'auth', 'admin', 'portal'
+    ];
+    
+    if (commonSubdomains.includes(parts[0].toLowerCase())) {
+      // Use the main domain (second part)
+      const mainDomain = parts[1];
+      return capitalizeCompanyName(mainDomain);
+    }
+  }
   
-  // Capitalize first letter
-  return mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
+  // Strategy 2: Standard domain (e.g., company.com)
+  // Use the first part before TLD
+  const mainDomain = parts[parts.length - 2] || parts[0];
+  return capitalizeCompanyName(mainDomain);
+}
+
+/**
+ * Capitalize company name properly
+ * Handles special cases like acronyms
+ */
+function capitalizeCompanyName(name) {
+  if (!name) return 'This Site';
+  
+  // Special cases for acronyms or known brands
+  const specialCases = {
+    'nike': 'Nike',
+    'amazon': 'Amazon',
+    'google': 'Google',
+    'spotify': 'Spotify',
+    'netflix': 'Netflix',
+    'hulu': 'Hulu',
+    'disney': 'Disney',
+    'apple': 'Apple',
+    'microsoft': 'Microsoft',
+    'facebook': 'Facebook',
+    'instagram': 'Instagram',
+    'twitter': 'Twitter',
+    'linkedin': 'LinkedIn',
+    'youtube': 'YouTube',
+    'tiktok': 'TikTok',
+    'reddit': 'Reddit',
+    'github': 'GitHub',
+    'gitlab': 'GitLab',
+    'stackoverflow': 'Stack Overflow',
+    'medium': 'Medium',
+    'airbnb': 'Airbnb',
+    'uber': 'Uber',
+    'lyft': 'Lyft',
+    'doordash': 'DoorDash',
+    'grubhub': 'GrubHub',
+    'postmates': 'Postmates',
+    'instacart': 'Instacart',
+    'walmart': 'Walmart',
+    'target': 'Target',
+    'bestbuy': 'Best Buy',
+    'ebay': 'eBay',
+    'etsy': 'Etsy',
+    'shopify': 'Shopify',
+    'paypal': 'PayPal',
+    'venmo': 'Venmo',
+    'cashapp': 'Cash App',
+    'stripe': 'Stripe',
+    'square': 'Square',
+    'godiva': 'Godiva',
+    'lindt': 'Lindt',
+    'ghirardelli': 'Ghirardelli',
+    'hersheys': "Hershey's",
+    'united': 'United Airlines',
+    'delta': 'Delta Airlines',
+    'american': 'American Airlines',
+    'southwest': 'Southwest Airlines',
+    'jetblue': 'JetBlue'
+  };
+  
+  const lowerName = name.toLowerCase();
+  
+  // Check special cases first
+  if (specialCases[lowerName]) {
+    return specialCases[lowerName];
+  }
+  
+  // Default: Capitalize first letter
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 /**

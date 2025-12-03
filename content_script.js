@@ -26,25 +26,25 @@ async function loadConfigAndExecute() {
     const path = urlObj.pathname.toLowerCase();
     const fullUrl = currentUrl;
     
-    console.log('🔍 URL Analysis:', { domain, path });
+    console.log('🔍 URL Analysis:', { domain, path, fullUrl });
     
-    // Priority-based matching: domain > path > full URL
+    // Check each category for matches
     for (const [category, keywords] of Object.entries(urlRules)) {
       if (category === 'general') continue; // Check general last
       
-      // Check if any keyword matches
+      // Check if any keyword matches in domain OR path
       const isMatch = keywords.some(keyword => {
         const lowerKeyword = keyword.toLowerCase();
         
-        // Priority 1: Exact domain match (e.g., "united.com" matches "www.united.com")
-        if (domain.includes(lowerKeyword) || lowerKeyword.includes(domain.replace('www.', ''))) {
-          console.log(`✓ Domain match: ${keyword} in ${domain}`);
+        // Check domain (e.g., "godiva.com" contains "godiva")
+        if (domain.includes(lowerKeyword)) {
+          console.log(`✓ Domain match: "${keyword}" found in domain "${domain}" → ${category}`);
           return true;
         }
         
-        // Priority 2: Path contains keyword (but not in query params)
-        if (path.includes(lowerKeyword) && !urlObj.search.toLowerCase().includes(lowerKeyword)) {
-          console.log(`✓ Path match: ${keyword} in ${path}`);
+        // Check path (e.g., "/lollipop" contains "lollipop")
+        if (path.includes(lowerKeyword)) {
+          console.log(`✓ Path match: "${keyword}" found in path "${path}" → ${category}`);
           return true;
         }
         
@@ -53,7 +53,7 @@ async function loadConfigAndExecute() {
       
       if (isMatch) {
         matchedCategory = category;
-        console.log(`✓ Matched category: ${category}`);
+        console.log(`✅ Matched category: ${category}`);
         break;
       }
     }

@@ -13,7 +13,15 @@
       "uber",
       "taxi",
       "rental",
-      "vehicle"
+      "vehicle",
+      "united",
+      "delta",
+      "american",
+      "southwest",
+      "jetblue",
+      "alaska",
+      "spirit",
+      "frontier"
     ],
     "clothing": [
       "bra",
@@ -26,7 +34,16 @@
       "shirt",
       "pants",
       "shoes",
-      "wear"
+      "wear",
+      "victoriassecret",
+      "savagex",
+      "thirdlove",
+      "nike",
+      "adidas",
+      "zara",
+      "h&m",
+      "uniqlo",
+      "gap"
     ],
     "food": [
       "chocolate",
@@ -40,7 +57,18 @@
       "eat",
       "meal",
       "snack",
-      "dessert"
+      "dessert",
+      "godiva",
+      "lindt",
+      "ghirardelli",
+      "hershey",
+      "ferrero",
+      "toblerone",
+      "lollipop",
+      "gummy",
+      "cookie",
+      "cake",
+      "bakery"
     ],
     "general": [
       "*"

@@ -1402,6 +1402,7 @@ function showGoodbyeMessage() {
  * - shop.nike.com → Nike
  * - careers.google.com → Google
  * - amazon.co.uk → Amazon
+ * - nike.com.cn → Nike
  */
 function getCompanyName() {
   const hostname = window.location.hostname;
@@ -1438,27 +1439,73 @@ function getCompanyName() {
   // Split by dots
   const parts = cleanHostname.split('.');
   
-  // Strategy 1: If subdomain exists (e.g., open.spotify.com)
-  // Use the second-to-last part (before TLD)
-  if (parts.length >= 3) {
-    // Check if first part is a common subdomain
-    const commonSubdomains = [
-      'open', 'play', 'shop', 'store', 'careers', 'jobs', 
-      'accounts', 'mail', 'drive', 'docs', 'api', 'app',
-      'my', 'secure', 'login', 'auth', 'admin', 'portal'
-    ];
+  // Common TLDs and country code TLDs
+  const tlds = ['com', 'net', 'org', 'edu', 'gov', 'io', 'co', 'ai', 'app'];
+  const countryCodes = ['uk', 'cn', 'jp', 'de', 'fr', 'au', 'ca', 'in', 'br', 'mx'];
+  
+  // Common subdomains to ignore
+  const commonSubdomains = [
+    'open', 'play', 'shop', 'store', 'careers', 'jobs', 
+    'accounts', 'mail', 'drive', 'docs', 'api', 'app',
+    'my', 'secure', 'login', 'auth', 'admin', 'portal',
+    'www', 'web', 'mobile', 'm'
+  ];
+  
+  // Find the company name part
+  let companyPart = null;
+  
+  if (parts.length === 2) {
+    // Simple case: company.com
+    companyPart = parts[0];
+  } else if (parts.length === 3) {
+    // Could be:
+    // - subdomain.company.com (e.g., open.spotify.com)
+    // - company.co.uk (e.g., amazon.co.uk)
+    // - company.com.cn (e.g., nike.com.cn)
     
-    if (commonSubdomains.includes(parts[0].toLowerCase())) {
-      // Use the main domain (second part)
-      const mainDomain = parts[1];
-      return capitalizeCompanyName(mainDomain);
+    const lastPart = parts[2];
+    const secondLast = parts[1];
+    const firstPart = parts[0];
+    
+    // Check if it's a country code TLD (e.g., .co.uk, .com.cn)
+    if (countryCodes.includes(lastPart) || (tlds.includes(secondLast) && countryCodes.includes(lastPart))) {
+      // It's company.co.uk or company.com.cn
+      companyPart = firstPart;
+    } else if (commonSubdomains.includes(firstPart.toLowerCase())) {
+      // It's subdomain.company.com
+      companyPart = secondLast;
+    } else {
+      // Default to first part
+      companyPart = firstPart;
+    }
+  } else if (parts.length >= 4) {
+    // Complex case: subdomain.company.co.uk or subdomain.company.com.cn
+    const firstPart = parts[0];
+    const secondPart = parts[1];
+    const thirdPart = parts[2];
+    const lastPart = parts[parts.length - 1];
+    
+    // Check if last two parts are TLD (e.g., .co.uk, .com.cn)
+    if (countryCodes.includes(lastPart) || tlds.includes(thirdPart)) {
+      if (commonSubdomains.includes(firstPart.toLowerCase())) {
+        // subdomain.company.co.uk → company
+        companyPart = secondPart;
+      } else {
+        // company.co.uk or weird case
+        companyPart = firstPart;
+      }
+    } else {
+      // Default to second part if first is subdomain
+      companyPart = commonSubdomains.includes(firstPart.toLowerCase()) ? secondPart : firstPart;
     }
   }
   
-  // Strategy 2: Standard domain (e.g., company.com)
-  // Use the first part before TLD
-  const mainDomain = parts[parts.length - 2] || parts[0];
-  return capitalizeCompanyName(mainDomain);
+  // Fallback
+  if (!companyPart) {
+    companyPart = parts[0];
+  }
+  
+  return capitalizeCompanyName(companyPart);
 }
 
 /**
